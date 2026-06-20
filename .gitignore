@@ -37,8 +37,4 @@ slurm-*.out
 *.err
 *.out
 
-# Large/local reference bundle.
-# Keep this local unless the user explicitly approves publishing it.
-vasp_references资料/**
-!vasp_references资料/README.md
-
+# The VASP reference bundle is intentionally tracked after user approval.

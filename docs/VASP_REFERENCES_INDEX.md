@@ -1,21 +1,26 @@
 # VASP References Index
 
-The local development copy contains a reference bundle at:
+The repository contains a reference bundle at:
 
 ```text
 vasp_references资料/
 ```
 
-This bundle is ignored by git by default because it may contain large files, generated files, or third-party materials that should not be published without user approval.
+This bundle was originally ignored by git. It is now intentionally tracked after explicit user approval so ChatGPT can read it through GitHub and provide better review suggestions.
 
-When ChatGPT needs this material for review, use one of these safer approaches:
+When ChatGPT needs this material for review, prefer these safer approaches:
 
-- Ask Codex to summarize the relevant local file into this index.
-- Add only small, redistributable notes or extracted metadata.
-- Keep full PDFs, images, and third-party packages out of GitHub unless the user explicitly confirms that publishing them is allowed.
+- Read the tracked Markdown, JSON, configuration, and source files first.
+- Use PDFs and images only when they are directly relevant to the review question.
+- Ask Codex to summarize or index large subsections when full review is not necessary.
 
 Current known local bundle categories:
 
 - JAMIP materials
 - VASPKIT materials
 
+Current upload summary:
+
+- Total tracked bundle size before git compression: about 58 MB.
+- Largest single file found before upload: about 14.7 MB.
+- No file exceeded GitHub's ordinary 100 MB single-file limit during preflight inspection.

@@ -1,0 +1,11 @@
+scikit-learn>=0.22
+ruamel.yaml>=0.16
+ipython>=2.0
+django>=3.1
+numpy>=1.14
+scipy>=1.4
+matplotlib
+mendeleev
+phonopy
+psutil
+seaborn
