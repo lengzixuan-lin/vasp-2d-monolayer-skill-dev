@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/16
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/17
 - Branch: `task_007_integrate-vaspkit-optical-verification`
 - Task ID: `task_007_integrate-vaspkit-optical-verification`
 
@@ -55,6 +55,11 @@
 - `git pull --ff-only origin main`
 - `git checkout -b task_007_integrate-vaspkit-optical-verification`
 - `C:\Program Files\GitHub CLI\gh.exe issue view 16 --comments --json ...`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_007: integrate vaspkit optical verification"`
+- `git push -u origin task_007_integrate-vaspkit-optical-verification`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
