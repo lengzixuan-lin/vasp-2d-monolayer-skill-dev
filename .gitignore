@@ -37,8 +37,9 @@ slurm-*.out
 *.err
 *.out
 
-# Large/local reference bundle.
-# Keep this local unless the user explicitly approves publishing it.
+# Reference bundles and third-party materials
+#
+# Keep full reference bundles local by default. Curated summaries should usually
+# live under `docs/`; if a small file must stay under this directory, stage it
+# explicitly with `git add -f <file>` after user approval.
 vasp_references资料/**
-!vasp_references资料/README.md
-

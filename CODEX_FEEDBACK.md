@@ -2,69 +2,64 @@
 
 ## GitHub Context
 
-- Issue: not created yet
-- PR: not created yet
-- Branch: `main`
-- Task ID: `task_000_github-bridge-setup`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/1
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2
+- Branch: `task_001_review-github-bridge`
+- Task ID: `task_001_review-github-bridge`
 
-## 本轮执行摘要
+## This Round Summary
 
-- 已建立 GitHub 作为 ChatGPT 与 Codex 中间桥梁的本地流程骨架。
-- 已初始化本地 git 仓库，当前分支为 `main`。
-- 已完成本地初始提交；具体哈希以 `git log --oneline -1` 为准。
+- Read ChatGPT's second and third PR reviews from PR #2.
+- Read ChatGPT's follow-up review confirming PR #2 is ready under the squash-merge / clean-history condition.
+- Removed the full local reference bundle directory from Git tracking with `git rm --cached`, preserving local files on disk.
+- Updated `.gitignore` so the reference bundle remains local by default and future additions require explicit force-add or relocation into curated docs.
+- Updated review, feedback, handoff, and reference-index docs to reflect that the user has confirmed the full bundle should not remain in this PR.
+- Updated the PR body so it matches the final 11-file diff and no longer reports stale changed-file information.
+- Recorded ChatGPT's third-review merge condition: use squash merge, or rewrite branch history before merge, so the earlier reference-bundle commit does not enter `main`.
+- Recorded the follow-up review result: no additional local implementation changes are required before merge, provided the merge uses squash merge or cleaned branch history.
+- Did not run `ssh lilin`, `sbatch`, or any remote compute/server write operation.
+- Did not modify real calculation tasks.
 
-## 已完成修改
+## Implemented Changes
 
-- 添加 `.gitignore`，避免日志、缓存、密钥、VASP 运行产物和本地大资料包被误提交。
-- 添加 `.gitattributes`，固定文本文件使用 LF 换行。
-- 添加 GitHub Issue 模板：`.github/ISSUE_TEMPLATE/task.md`
-- 添加 GitHub PR 模板：`.github/PULL_REQUEST_TEMPLATE.md`
-- 添加 handoff 目录和模板：`docs/handoff/`
-- 添加协作流程说明：`docs/GITHUB_COLLABORATION_WORKFLOW.md`
-- 添加本地 VASP 资料索引说明：`docs/VASP_REFERENCES_INDEX.md`
-- 更新 `CHATGPT_REVIEW.md`，加入 GitHub Issue/PR/分支上下文。
-- 写入本轮 handoff：`docs/handoff/2026-06-20_task_000_github-bridge-setup.md`
+- The reference bundle directory is no longer tracked for this branch's final PR state.
+- `.gitignore` now scopes reference-bundle ignore behavior to the reference bundle directory instead of globally ignoring every PDF/image/binary in the repository.
+- `CHATGPT_REVIEW.md` records the second, third, and follow-up review URLs, the updated confirmation status, the clean-history merge condition, and the duplicate stale review note.
+- `docs/VASP_REFERENCES_INDEX.md` describes the bundle as local-only for this PR.
+- `CODEX_FEEDBACK.md` and the handoff file state that reference-bundle removal is confirmed and implemented, and that clean history is required before merge.
 
-## 未执行建议及原因
+## Diff Reality Check
 
-- 未创建 GitHub 远程仓库：这属于外部写入，需要用户确认仓库名、可见性和是否允许推送。
-- 未推送到 GitHub 或创建 PR：外部写入需用户确认。
-- 未修改正式 skill 目录：当前阶段只在开发副本中工作。
-- 未执行 `ssh lilin`、`sbatch` 或任何远程计算操作。
+- Tracked files under the reference bundle directory after `git rm --cached`: 0.
+- Final PR changed-file count relative to `main`: 11.
+- Full local bundle files were preserved on disk.
+- Final PR no longer adds third-party PDFs, images, generated JSON, source trees, config files, or binaries from the bundle.
+- Local workflow mirror changed: no in this follow-up.
+- Server execution source changed: no.
 
-## 修改文件列表
+## Not Implemented
 
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\.gitignore`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\.gitattributes`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\.github\ISSUE_TEMPLATE\task.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\.github\PULL_REQUEST_TEMPLATE.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\CHATGPT_REVIEW.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\CODEX_FEEDBACK.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\docs\GITHUB_COLLABORATION_WORKFLOW.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\docs\VASP_REFERENCES_INDEX.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\docs\handoff\README.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\docs\handoff\TEMPLATE.md`
-- `C:\Users\11658\Documents\Codex\work\vasp-2d-monolayer-skill-dev\docs\handoff\2026-06-20_task_000_github-bridge-setup.md`
+- Did not delete the local reference bundle from disk.
+- Did not rewrite PR history in this round; because that would require a force-push style remote branch update, the safe merge path is squash merge unless the user explicitly asks Codex to rewrite the PR branch history.
+- Did not update the formal installed skill directory at `C:\Users\11658\.codex\skills\vasp-2d-monolayer`.
+- Did not sync anything to `lilin`.
 
-## 运行的检查
+## Checks Run
 
-- 检查开发副本目录结构。
-- 检查开发副本 git 状态。
-- 检查本地 VASP 资料包大小和文件类型。
-- 检查 `.gitignore` 是否排除日志、缓存和 `vasp_references资料/`。
-- 执行 `git diff --cached --stat` 查看待提交内容。
+- `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
+- `git status --short --branch`
+- GitHub PR comments read through the Codex GitHub plugin.
+- `git rm -r --cached -- "vasp_references<Chinese-data-dir>"`
+- `git ls-files "vasp_references<Chinese-data-dir>/*"`
+- `git diff --stat origin/main...HEAD`
+- `C:\Program Files\GitHub CLI\gh.exe pr edit 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --body ...`
+- Latest PR review read with `C:\Program Files\GitHub CLI\gh.exe pr view 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json ...`
+- Local diffs reviewed before staging.
 
-## 风险与遗留问题
+## Remaining Notes
 
-- `vasp_references资料/` 已默认忽略，不会随 GitHub 仓库发布。若 ChatGPT 必须审查其中内容，需要先由用户确认可上传范围，或让 Codex 提取摘要到 `docs/VASP_REFERENCES_INDEX.md`。
-- 还未创建远程仓库和首个 PR。
-- 需要用户确认 GitHub 仓库名称、私有/公开状态，以及是否允许 Codex 执行外部写入。
-- 当前仓库需要设置本地 Git 作者身份后才能完成本地初始提交。
-- 本仓库已设置本地 Git 作者身份：`Codex <codex@local.invalid>`；未修改全局 Git 配置。
-
-## 建议下一轮 ChatGPT 审查重点
-
-- 阅读 `docs/GITHUB_COLLABORATION_WORKFLOW.md`。
-- 审查 `.gitignore` 是否过严或过宽。
-- 审查 Issue/PR/handoff 模板是否足够支撑 ChatGPT + Codex 协作。
-- 下一轮再审查 `SKILL.md` 的触发条件、远程执行边界、VASP 工作流假设和用户确认点。
+- The PR body was stale before this round and has been updated to match the new final diff.
+- ChatGPT's third review says the PR is functionally ready only under a clean-history condition: squash merge the final diff, or rewrite the branch before merge.
+- ChatGPT's follow-up review confirms the PR is mergeable under that same squash-merge / clean-history condition.
+- Do not use an ordinary merge or rebase merge that carries the earlier reference-bundle commit into `main`.
+- Curated reference summaries should usually be added under `docs/`; if a small file must remain under the reference bundle directory, use an explicit force-add only after user approval.
