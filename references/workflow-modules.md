@@ -2,6 +2,8 @@
 
 This file holds stable module and dependency details for the monolayer 2D VASP workflow. Load it when selecting modules, reviewing prepared inputs, checking dependencies, or collecting results.
 
+For module provenance and result-summary label schema expectations, read `references/provenance-and-result-label-schema.md`.
+
 ## Default Module Order
 
 Default standard chain:
@@ -39,7 +41,7 @@ Disabled by default or heterojunction/catalysis scope:
 - Reuse the optimization `POTCAR` unless POSCAR composition or element order changes.
 - Modules that read charge density must require parent `CHGCAR` at runtime before VASP starts.
 - Remove or avoid `WAVECAR` when KPOINTS, NBANDS, functional, or method differ from the parent.
-- Each prepared module should write `module_provenance.yaml` with parent directory, `CONTCAR/CHGCAR/WAVECAR` inheritance policy, runtime KPOINTS mode, VASP executable, and INCAR template.
+- Each prepared module should write `module_provenance.yaml` following `references/provenance-and-result-label-schema.md`, including parent directory, `CONTCAR/CHGCAR/WAVECAR` inheritance policy, runtime KPOINTS mode, VASP executable, environment reference, restart/overwrite status, post-processing source, and review state.
 
 Modules that normally require parent `CHGCAR`:
 
@@ -116,6 +118,8 @@ Modules that normally require parent `CHGCAR`:
 ## Result Labels
 
 Never report a value without method and source.
+
+Use `references/provenance-and-result-label-schema.md` as the result-summary label baseline.
 
 Use clear labels:
 
