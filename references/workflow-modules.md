@@ -90,8 +90,10 @@ Modules that normally require parent `CHGCAR`:
 ### Optical
 
 - `LOPTICS` is the raw VASP response step for 2D optical analysis.
-- Require VASPKIT 710 conversion before treating outputs as 2D optical absorption data.
+- Require the verified VASPKIT 710 conversion before treating outputs as 2D optical absorption data.
+- Task_006 verified the current `lilin` VASPKIT mapping in `references/vaspkit-optical-verification.md`: `710` is for two-dimensional semiconductor optical spectra, while `711` is bulk-only and must not be used for monolayer optical absorption summaries.
 - Require explicit and justified `NBANDS`.
+- Optical provenance must record VASPKIT path/version, task number `710`, `POSCAR`, `vasprun.xml` or derived `REAL.in`/`IMAG.in`, `LOPTICS`, `NBANDS`, and generated 2D outputs such as `ABSORPTION_2D.dat`, `REFLECTION_2D.dat`, `TRANSMISSION_2D.dat`, `REAL_OPTICAL_CONDUCTIVITY_2D.dat`, and `IMAG_OPTICAL_CONDUCTIVITY_2D.dat`.
 
 ### Effective Mass
 
