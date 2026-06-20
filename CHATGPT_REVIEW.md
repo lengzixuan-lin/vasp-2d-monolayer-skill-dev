@@ -13,8 +13,9 @@
 - Second review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536664400
 - Third review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536682906
 - Duplicate stale review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536683158
-- Review result: conditionally mergeable. The final 11-file diff is acceptable, but the PR must be squash-merged or the branch history must be rewritten before merge so the earlier reference-bundle commit does not enter `main`.
-- Note: the duplicate stale review repeats the first review text after the final diff was already reduced. The current applicable review is the third review above, checked against the latest PR state.
+- Follow-up review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536694135
+- Review result: ready with squash-merge condition. The final 11-file diff is acceptable, but the PR must be squash-merged or the branch history must be rewritten before merge so the earlier reference-bundle commit does not enter `main`.
+- Note: the duplicate stale review repeats the first review text after the final diff was already reduced. The current applicable review is the follow-up review above, checked against the latest PR state.
 
 ## Review Goal
 
@@ -55,6 +56,7 @@
 3. Still recommended: keep the repository private unless the user separately confirms copyright and redistribution boundaries.
 4. Implemented: server verification is user-confirmed rather than default required reading.
 5. Required before merge: use squash merge, or rewrite the branch history to remove the earlier reference-bundle commit before merging.
+6. Follow-up review confirms PR #2 is mergeable under the squash-merge / clean-history condition.
 
 ## Forbidden Direct Actions
 
