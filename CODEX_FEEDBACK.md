@@ -2,41 +2,31 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/12
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/13
-- Branch: `task_006_verify-vaspkit-optical-numbering`
-- Task ID: `task_006_verify-vaspkit-optical-numbering`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/16
+- PR: pending
+- Branch: `task_007_integrate-vaspkit-optical-verification`
+- Task ID: `task_007_integrate-vaspkit-optical-verification`
 
 ## This Round Summary
 
 - Synced local `main` with `origin/main`.
-- Read Issue #12 and confirmed the user explicitly authorized read-only server inspection for this task.
-- Authorization source: the task-starting user message explicitly authorized read-only server inspection for VASPKIT version and optical task numbering and forbade `sbatch`, VASP runs, server dry-runs, remote writes/deletes/sync, real calculation edits, and `scripts/remote-workflow/**` implementation edits.
-- Created branch `task_006_verify-vaspkit-optical-numbering`.
-- Read `SKILL.md`, `references/server-boundary.md`, and task_004's VASPKIT optical verification plan.
-- Performed read-only `ssh lilin` inspection to verify the installed VASPKIT version and optical task numbering.
-- Kept all repository changes documentation-only.
-
-## Verified Result
-
-- Installed VASPKIT path: `/home/lilin/software/vaspkit.1.3.1/bin/vaspkit`
-- Installed VASPKIT version: `VASPKIT Standard Edition 1.3.1 (03 Dec. 2021)`
-- Verified optical task mapping:
-  - `710`: `Linear Optical Spectrums for Two-Dimensional Semiconductors`
-  - `711`: `Linear Optical Spectrums for Bulk Semiconductors`
-- Recommendation: monolayer optical post-processing should use `vaspkit -task 710`; `711` should be treated as bulk-only.
+- Read Issue #16 and confirmed this task is documentation-only.
+- Created branch `task_007_integrate-vaspkit-optical-verification`.
+- Read `references/workflow-modules.md` and `references/vaspkit-optical-verification.md`.
+- Integrated the task_006 VASPKIT optical verification result into workflow documentation.
 
 ## Implemented Changes
 
-- Added `references/vaspkit-optical-verification.md`.
-- Added `docs/improvement-plans/2026-06-20_task_006_verify-vaspkit-optical-numbering.md`.
-- Added `docs/handoff/2026-06-20_task_006_verify-vaspkit-optical-numbering.md`.
-- Recorded the exact authorization source and a future integration target requested by ChatGPT's PR #13 review.
-- Replaced `CODEX_FEEDBACK.md` with this task_006 feedback summary.
+- Updated the `references/workflow-modules.md` optical section to link `references/vaspkit-optical-verification.md`.
+- Clarified that VASP `LOPTICS` is the raw dielectric-response step.
+- Clarified that VASPKIT `710` is the verified 2D converted-spectra step.
+- Clarified that VASPKIT `711` is bulk-only and must not be used for monolayer optical absorption summaries.
+- Added optical provenance expectations for VASPKIT path/version, task number `710`, `POSCAR`, `vasprun.xml` or `REAL.in`/`IMAG.in`, `LOPTICS`, `NBANDS`, and generated 2D output files such as `ABSORPTION_2D.dat`.
+- Added `docs/handoff/2026-06-20_task_007_integrate-vaspkit-optical-verification.md`.
 
 ## Diff Reality Check
 
-- Actual changed file count: 4.
+- Actual changed file count: 3.
 - Large files added: no.
 - Reference bundle changed: no.
 - Third-party materials or binaries changed: no.
@@ -47,13 +37,14 @@
 
 ## Not Implemented
 
-- Did not edit `scripts/remote-workflow/**`.
-- Did not modify workflow implementation files.
+- Did not run `ssh lilin`.
 - Did not run `sbatch`.
 - Did not run VASP.
+- Did not run VASPKIT.
 - Did not run server-side workflow dry-runs.
-- Did not delete, overwrite, move, sync, or intentionally write remote server files.
+- Did not delete, overwrite, move, sync, or write remote server files.
 - Did not modify real calculation tasks.
+- Did not edit `scripts/remote-workflow/**`.
 - Did not sync changes into the formal installed skill directory.
 
 ## Checks Run
@@ -62,19 +53,10 @@
 - `git fetch origin main`
 - `git checkout main`
 - `git pull --ff-only origin main`
-- `git checkout -b task_006_verify-vaspkit-optical-numbering`
-- `C:\Program Files\GitHub CLI\gh.exe issue view 12 --comments --json ...`
-- Read-only `ssh lilin` inspection commands listed in `references/vaspkit-optical-verification.md`
-- `git diff --check`
-- `git diff --cached`
-- `git commit -m "task_006: verify vaspkit optical numbering"`
-- `git push -u origin task_006_verify-vaspkit-optical-numbering`
-- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
-- `C:\Program Files\GitHub CLI\gh.exe pr view 13 --comments --json ...`
-- `C:\Program Files\GitHub CLI\gh.exe api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/13/comments`
+- `git checkout -b task_007_integrate-vaspkit-optical-verification`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 16 --comments --json ...`
 
 ## Remaining Notes
 
-- This result is specific to the server's current VASPKIT path/version.
-- Successful generation of 2D optical output files was not run because that would require real calculation inputs and would write output files.
-- Later workflow documentation should link to `references/vaspkit-optical-verification.md`, but this PR intentionally does not modify workflow implementation.
+- This PR only integrates verified optical guidance into documentation.
+- Any workflow implementation change should be handled in a later reviewed task.
