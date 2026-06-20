@@ -1,0 +1,37 @@
+## Deprecated compatibility template for old `hse` manifests.
+## New projects use `incar_hse_scf.j2` and `incar_hse_band.j2`.
+## This behaves as an HSE06 band calculation.
+
+SYSTEM  = {{ system_name }}
+PREC    = Accurate
+ENCUT   = {{ encut }}
+NCORE   = {{ ncore }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ISTART  = 0
+ICHARG  = 11
+ISPIN   = {{ ispin }}
+
+LHFCALC = .TRUE.
+AEXX    = {{ aexx }}
+HFSCREEN = {{ hfscreen }}
+ALGO    = {{ algo }}
+TIME    = {{ time }}
+PRECFOCK = {{ precfock }}
+ISYM    = 3                # symmetry of charge density for hybrids
+
+LORBIT  = 11
+NEDOS   = 2001
+
+ISMEAR  = 0
+SIGMA   = 0.05
+EDIFF   = {{ ediff }}
+NELM    = 200
+NELMIN  = 6
+
+NSW     = 0
+IBRION  = -1
+
+LWAVE   = .TRUE.
+LCHARG  = .TRUE.

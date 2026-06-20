@@ -1,0 +1,232 @@
+# Standard precision parameters (paper-level quality)
+# ====================================================
+
+global:
+  encut_factor: 1.5
+  encut_min: 0  # no minimum, use pure ENMAX factor
+  ediff: 1.0E-06
+  ediffg: -0.01
+  ivdw: 11                # VASP DFT-D3 zero damping; use 12 for D3(BJ)
+  ismear: 0
+  sigma: 0.05
+  ispin: 1
+  lreal: .FALSE.
+  addgrid: .TRUE.
+  ncore: 8
+  nelm: 90
+  nelmin: 6
+
+kpoints:
+  vaspkit_102_spacing: 0.04     # exact flow: 102 -> 2 -> 0.04
+  monolayer_density: 0.04        # VASPKIT 102 input: 102 -> 2 -> 0.04
+  heterojunction_density: 0.025  # ~8x8x1
+
+opt:
+  nsw: 100
+  ibrion: 2
+  isif: 3
+  lwave: .FALSE.
+  lcharg: .FALSE.
+
+scf:
+  lwave: .TRUE.
+  lcharg: .TRUE.
+
+conv_test:
+  encut_range: [1.1, 1.3, 1.5, 1.7, 2.0]   # ENMAX multipliers
+  kpoints_density_range: [0.02, 0.025, 0.03, 0.04, 0.05]
+  energy_tol_per_atom: 0.001                  # 1 meV/atom convergence
+
+band:
+  icharg: 11
+  lorbit: 11
+  nedos: 3000
+
+dos:
+  icharg: 11
+  lorbit: 11
+  nedos: 5000
+
+hse:
+  enabled: false         # Deprecated alias; use hse_scf + hse_band
+
+hse_scf:
+  enabled: true
+  lhfcalc: .TRUE.
+  aexx: 0.25
+  hfscreen: 0.2
+  algo: Damped
+  time: 0.4
+  precfock: Normal
+  nedos: 5000
+  lorbit: 11
+
+hse_band:
+  enabled: true
+  lhfcalc: .TRUE.
+  aexx: 0.25
+  hfscreen: 0.2
+  algo: Damped
+  time: 0.4
+  precfock: Normal
+  nedos: 5000
+  lorbit: 11
+  kpath_density: 0.05
+
+hse_optical:
+  enabled: false
+  lhfcalc: .TRUE.
+  aexx: 0.25
+  hfscreen: 0.2
+  algo: Normal          # HSE optical: Normal is more stable than Damped
+  time: 0.4
+  precfock: Normal
+  nedos: 3000
+  lorbit: 11
+  loptics: .TRUE.
+  cshift: 0.1
+  lrpa: .FALSE.
+  encutfock: 0          # Use same ENCUT as plane waves
+  ismear: -5            # Tetrahedron method for optical
+  nelmin: 5
+
+vacuum:
+  enabled: true
+  idipol: 3
+  lvhar: .TRUE.
+
+optical:
+  enabled: true
+  allow_2d_loptics: true
+  postprocess: vaspkit_710
+  vaspkit_102_spacing: 0.02
+  vaspkit_710_energy_unit: 1   # 1=eV
+  vaspkit_710_quantities: [1, 2, 3]  # Absorption, Refractive, Transmission
+  algo: Exact
+  cshift: 0.1
+  nedos: 3001
+
+phonopy_fd:
+  enabled: true
+  stage: production       # debug for testing; production for manuscript phonons
+  primitive_reference_kmesh: [12, 12, 1]
+  band_path: gamma_m_k_gamma
+  band_points: 101
+  dos_mesh: [40, 40, 1]
+  displacement_distance: 0.01
+  symprec: 1.0E-03
+  debug:
+    prec: Accurate
+    ediff: 1.0E-06
+    dim: [3, 3, 1]
+    scale_by_lattice: true
+    min_inplane_length: 9.0
+    max_dim: 5
+  production:
+    prec: Accurate
+    ediff: 1.0E-07
+    dim: [4, 4, 1]
+    scale_by_lattice: true
+    min_inplane_length: 12.0
+    max_dim: 6
+  imaginary_followup:
+    threshold_thz: -0.2
+    next_dim: [5, 5, 1]
+    kmesh_multiplier: 1.25
+    next_ediff: 1.0E-08
+    softmode_required: true
+
+phonon_dfpt_check:
+  enabled: false          # Optional quick diagnostic; phonopy_fd is preferred
+  ediff: 1.0E-08
+  prec: Accurate
+  ialgo: 38
+  ibrion: 8
+  nsw: 1
+  nelm: 100
+  nelmdl: -5
+  ismear: 0
+  sigma: 0.05
+  lwave: .FALSE.
+  lcharg: .FALSE.
+
+aimd:
+  enabled: false
+  ibrion: 0
+  isif: 2
+  mdalgo: 2             # Nose-Hoover thermostat
+  smass: 1.0
+  tebeg: 300
+  teend: 300
+  nsw: 3000             # 3 ps
+  potim: 1              # 1 fs
+  encut_factor: 1.3     # Lower ENCUT OK for AIMD
+  algo: Fast
+  prec: Normal
+  isym: 0
+  lreal: Auto
+
+ccd:
+  enabled: false          # Heterojunction only
+
+bader:
+  enabled: false          # Heterojunction only
+  laechg: .TRUE.
+
+potential:
+  enabled: false          # Heterojunction only
+  lvtot: .TRUE.
+  idipol: 3
+
+strain:
+  enabled: false
+  horizontal_values: [-3, -2, -1, 1, 2, 3]   # percentage
+  vertical_values: [-2, -1, 1, 2]             # percentage
+
+efield:
+  enabled: false
+  values: [-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]  # V/Ang
+
+effective_mass:
+  enabled: true
+  workflow_ready: true
+  method: pbe
+  edge_source: 03_pbeband
+  charge_parent: 02_scf
+  directions: [a, b]
+  carriers: [electron, hole]
+  delta_k: 0.005               # Angstrom^-1 local k-step around the band edge
+  points_each_side: 5          # 11 explicit k-points per local line
+  fit_windows: [3, 4, 5]
+  max_fit_energy_meV: 50
+  max_residual_meV: 5
+  valley_tolerance_meV: 5
+  max_valleys: 2
+  occupation_threshold: 0.5
+  min_gap_eV: 0.01
+
+mobility:
+  enabled: true
+  workflow_ready: true
+  method: pbe
+  charge_parent: 02_scf
+  effective_mass_source: 11_effective_mass/results/em_summary.yaml
+  directions: [a, b]
+  carriers: [electron, hole]
+  strain_values: [-1.0, -0.5, 0.0, 0.5, 1.0]  # percentage
+  temperature: 300
+  max_valleys: 2
+  edge_delta_k: 0.005            # Angstrom^-1 local k-step for strained band edges
+  edge_points_each_side: 5
+  elastic_r2_min: 0.995
+  deformation_potential_r2_min: 0.98
+  emass_quality_required: true
+  max_anisotropy_warning_percent: 10
+  vacuum_std_warning_eV: 0.05
+  ediff: 1.0E-06
+  ediffg: -0.01
+  nsw: 80
+  ibrion: 2
+
+adsorption:
+  enabled: false          # User must explicitly enable

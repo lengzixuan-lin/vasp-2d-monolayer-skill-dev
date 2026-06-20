@@ -1,0 +1,25 @@
+## Structure Optimization
+## ISIF=3 + OPTCELL: in-plane relax, c-axis fixed
+
+SYSTEM  = {{ system_name }}
+ENCUT   = {{ encut }}
+ISTART  = 0
+NCORE   = {{ ncore }}
+IVDW    = {{ ivdw }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ISPIN   = {{ ispin }}
+ISMEAR  = 0
+SIGMA   = 0.1
+NELM    = {{ nelm }}
+NELMIN  = {{ nelmin }}
+EDIFF   = {{ ediff }}
+
+NSW     = {{ nsw }}
+IBRION  = {{ ibrion }}
+ISIF    = 3
+EDIFFG  = {{ ediffg }}
+
+LWAVE   = .FALSE.
+LCHARG  = .FALSE.

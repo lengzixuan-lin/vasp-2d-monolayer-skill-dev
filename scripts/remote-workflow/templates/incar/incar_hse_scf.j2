@@ -1,0 +1,36 @@
+## HSE06 Self-Consistent Calculation
+## Uniform KPOINTS; writes HSE CHGCAR/WAVECAR for downstream checks.
+
+SYSTEM  = {{ system_name }}
+PREC    = Accurate
+ENCUT   = {{ encut }}
+NCORE   = {{ ncore }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ISTART  = 0
+ICHARG  = 1
+ISPIN   = {{ ispin }}
+
+LHFCALC = .TRUE.
+AEXX    = {{ aexx }}
+HFSCREEN = {{ hfscreen }}
+ALGO    = {{ algo }}
+TIME    = {{ time }}
+PRECFOCK = {{ precfock }}
+ISYM    = 0
+
+LORBIT  = {{ lorbit }}
+NEDOS   = {{ nedos }}
+
+ISMEAR  = 0
+SIGMA   = 0.05
+EDIFF   = {{ ediff }}
+NELM    = 200
+NELMIN  = 6
+
+NSW     = 0
+IBRION  = -1
+
+LWAVE   = .TRUE.
+LCHARG  = .TRUE.

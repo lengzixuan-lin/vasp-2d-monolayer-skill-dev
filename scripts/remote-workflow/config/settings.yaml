@@ -1,0 +1,41 @@
+# DFT Workflow Global Settings
+# =============================
+
+# Server paths
+vasp:
+  executable: /home/soft/vasp/vasp.6.3.2_optcell/bin/vasp_std
+  executable_std: /home/soft/vasp/vasp.6.3.2_optcell/bin/vasp_std
+  executable_gam: /home/soft/vasp/vasp.6.3.2_optcell/bin/vasp_gam
+  executable_ncl: /home/soft/vasp/vasp.6.3.2_optcell/bin/vasp_ncl
+  potcar_base: /home/soft/vasp/vasp.6.3.2_optcell/potpaw_PBE  # verify with ls
+
+vaspkit:
+  executable: /home/lilin/software/vaspkit.1.3.1/bin/vaspkit
+  version: "1.3.1"
+
+phonopy:
+  executable: /home/lilin/anaconda3/bin/phonopy
+
+# Slurm defaults
+slurm:
+  partition: cpus
+  nodes: 1
+  ntasks: 16
+  cpus_per_task: 1
+  submit_template: /home/lilin/input/sub.vasp
+
+# OpenMPI + AOCL environment
+env:
+  PATH_MPI: /home/soft/openmpi/bin
+  LD_MPI: /home/soft/openmpi/lib
+  LD_AOCL: /home/soft/AOCL/5.2.0/gcc/lib_LP64
+  OMP_NUM_THREADS: 1
+
+# Workflow
+projects_dir: /home/lilin/calculation/1_dft/02_workflow/projects
+default_precision: standard
+max_retries: 0  # diagnose first; resubmit only after explicit user approval
+monitor_interval_sec: 60
+
+# INCAR template base directory (server-side templates)
+incar_template_dir: /home/lilin/input

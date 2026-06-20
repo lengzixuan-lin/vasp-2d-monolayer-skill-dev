@@ -1,0 +1,268 @@
+# POTCAR element database
+# ENMAX values from VASP 6.3.2 PAW-PBE potentials
+# Used for auto-calculating ENCUT and NBANDS
+
+H:
+  zval: 1
+  enmax: 250.000
+  potcar: H
+He:
+  zval: 2
+  enmax: 250.000
+  potcar: He
+Li:
+  zval: 3
+  enmax: 370.000
+  potcar: Li_sv
+Be:
+  zval: 4
+  enmax: 300.000
+  potcar: Be_sv
+B:
+  zval: 3
+  enmax: 318.745
+  potcar: B
+C:
+  zval: 4
+  enmax: 414.024
+  potcar: C
+N:
+  zval: 5
+  enmax: 400.691
+  potcar: N
+O:
+  zval: 6
+  enmax: 400.000
+  potcar: O
+F:
+  zval: 7
+  enmax: 400.000
+  potcar: F
+Na:
+  zval: 7
+  enmax: 310.000
+  potcar: Na_sv
+Mg:
+  zval: 8
+  enmax: 320.000
+  potcar: Mg_sv
+Al:
+  zval: 3
+  enmax: 240.302
+  potcar: Al
+Si:
+  zval: 4
+  enmax: 245.929
+  potcar: Si
+P:
+  zval: 5
+  enmax: 269.580
+  potcar: P
+S:
+  zval: 6
+  enmax: 258.689
+  potcar: S
+Cl:
+  zval: 7
+  enmax: 262.505
+  potcar: Cl
+K:
+  zval: 9
+  enmax: 290.000
+  potcar: K_sv
+Ca:
+  zval: 10
+  enmax: 310.000
+  potcar: Ca_sv
+Sc:
+  zval: 11
+  enmax: 280.000
+  potcar: Sc_sv
+Ti:
+  zval: 12
+  enmax: 294.756
+  potcar: Ti_sv
+V:
+  zval: 13
+  enmax: 285.330
+  potcar: V_sv
+Cr:
+  zval: 12
+  enmax: 287.335
+  potcar: Cr_pv
+Mn:
+  zval: 13
+  enmax: 269.926
+  potcar: Mn_pv
+Fe:
+  zval: 14
+  enmax: 294.511
+  potcar: Fe_pv
+Co:
+  zval: 9
+  enmax: 282.692
+  potcar: Co
+Ni:
+  zval: 10
+  enmax: 284.299
+  potcar: Ni
+Cu:
+  zval: 11
+  enmax: 295.476
+  potcar: Cu_pv
+Zn:
+  zval: 12
+  enmax: 278.859
+  potcar: Zn
+Ga:
+  zval: 13
+  enmax: 280.000
+  potcar: Ga_d
+Ge:
+  zval: 14
+  enmax: 280.000
+  potcar: Ge_d
+As:
+  zval: 5
+  enmax: 258.697
+  potcar: As
+Se:
+  zval: 6
+  enmax: 211.555
+  potcar: Se
+Br:
+  zval: 7
+  enmax: 216.237
+  potcar: Br
+Rb:
+  zval: 9
+  enmax: 240.000
+  potcar: Rb_sv
+Sr:
+  zval: 10
+  enmax: 280.000
+  potcar: Sr_sv
+Y:
+  zval: 11
+  enmax: 280.000
+  potcar: Y_sv
+Zr:
+  zval: 12
+  enmax: 280.000
+  potcar: Zr_sv
+Nb:
+  zval: 13
+  enmax: 280.507
+  potcar: Nb_sv
+Mo:
+  zval: 14
+  enmax: 242.676
+  potcar: Mo_sv
+Tc:
+  zval: 15
+  enmax: 300.000
+  potcar: Tc_sv
+Ru:
+  zval: 16
+  enmax: 300.000
+  potcar: Ru_sv
+Rh:
+  zval: 17
+  enmax: 300.000
+  potcar: Rh_sv
+Pd:
+  zval: 16
+  enmax: 300.000
+  potcar: Pd_pv
+Ag:
+  zval: 11
+  enmax: 269.743
+  potcar: Ag
+Cd:
+  zval: 12
+  enmax: 281.134
+  potcar: Cd
+In:
+  zval: 13
+  enmax: 245.912
+  potcar: In_d
+Sn:
+  zval: 14
+  enmax: 246.242
+  potcar: Sn_d
+Sb:
+  zval: 5
+  enmax: 259.921
+  potcar: Sb
+Te:
+  zval: 6
+  enmax: 207.660
+  potcar: Te
+I:
+  zval: 7
+  enmax: 212.883
+  potcar: I
+Cs:
+  zval: 9
+  enmax: 240.000
+  potcar: Cs_sv
+Ba:
+  zval: 10
+  enmax: 280.000
+  potcar: Ba_sv
+La:
+  zval: 11
+  enmax: 293.552
+  potcar: La
+Ce:
+  zval: 12
+  enmax: 300.000
+  potcar: Ce
+Hf:
+  zval: 12
+  enmax: 293.383
+  potcar: Hf_pv
+Ta:
+  zval: 13
+  enmax: 291.960
+  potcar: Ta_pv
+W:
+  zval: 14
+  enmax: 290.435
+  potcar: W_sv
+Re:
+  zval: 15
+  enmax: 300.000
+  potcar: Re_sv
+Os:
+  zval: 16
+  enmax: 300.000
+  potcar: Os_sv
+Ir:
+  zval: 17
+  enmax: 300.000
+  potcar: Ir_sv
+Pt:
+  zval: 10
+  enmax: 274.172
+  potcar: Pt
+Au:
+  zval: 11
+  enmax: 260.353
+  potcar: Au
+Hg:
+  zval: 12
+  enmax: 260.000
+  potcar: Hg
+Tl:
+  zval: 13
+  enmax: 250.000
+  potcar: Tl_d
+Pb:
+  zval: 14
+  enmax: 252.407
+  potcar: Pb_d
+Bi:
+  zval: 5
+  enmax: 262.648
+  potcar: Bi_d

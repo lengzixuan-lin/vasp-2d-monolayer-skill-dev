@@ -1,0 +1,27 @@
+## SOC Band-Edge Check (non-SCF)
+
+SYSTEM  = {{ system_name }}
+PREC    = Accurate
+ENCUT   = {{ encut }}
+NCORE   = {{ ncore }}
+IVDW    = {{ ivdw }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ICHARG  = 11
+ISPIN   = {{ ispin }}
+
+LSORBIT = .TRUE.
+LMAXMIX = 4
+LORBIT  = 11
+NEDOS   = 3000
+
+ISMEAR  = 0
+SIGMA   = 0.05
+EDIFF   = {{ ediff }}
+
+NSW     = 0
+IBRION  = -1
+
+LWAVE   = .FALSE.
+LCHARG  = .FALSE.

@@ -1,0 +1,149 @@
+# Quick precision parameters (rapid screening)
+# =============================================
+
+global:
+  encut_factor: 1.5
+  encut_min: 0
+  ediff: 1.0E-05
+  ediffg: -0.02
+  ivdw: 11            # VASP DFT-D3 zero damping; use 12 for D3(BJ)
+  ismear: 0
+  sigma: 0.1
+  ispin: 1
+  lreal: .FALSE.
+  addgrid: .TRUE.
+  ncore: 8
+  nelm: 90
+  nelmin: 6
+
+kpoints:
+  vaspkit_102_spacing: 0.04  # exact flow: 102 -> 2 -> 0.04
+  monolayer_density: 0.04   # VASPKIT 102 input: 102 -> 2 -> 0.04
+  heterojunction_density: 0.05   # ~4x4x1
+
+opt:
+  nsw: 100
+  ibrion: 2
+  isif: 3
+  lwave: .FALSE.
+  lcharg: .FALSE.
+
+scf:
+  lwave: .TRUE.
+  lcharg: .TRUE.
+
+band:
+  icharg: 11
+  lorbit: 11
+  nedos: 2000
+
+dos:
+  icharg: 11
+  lorbit: 11
+  nedos: 2000
+
+# All modules below are disabled in quick mode
+hse:
+  enabled: false
+
+hse_scf:
+  enabled: false
+
+hse_band:
+  enabled: false
+
+vacuum:
+  enabled: false
+
+optical:
+  enabled: false
+  allow_2d_loptics: true
+  postprocess: vaspkit_710
+  vaspkit_102_spacing: 0.02
+  vaspkit_710_energy_unit: 1
+  vaspkit_710_quantities: [1, 2, 3]
+
+phonopy_fd:
+  enabled: false
+  stage: debug
+  primitive_reference_kmesh: [12, 12, 1]
+  debug:
+    prec: Accurate
+    ediff: 1.0E-06
+    dim: [3, 3, 1]
+    scale_by_lattice: true
+    min_inplane_length: 9.0
+    max_dim: 5
+  production:
+    prec: Accurate
+    ediff: 1.0E-07
+    dim: [4, 4, 1]
+    scale_by_lattice: true
+    min_inplane_length: 12.0
+    max_dim: 6
+  imaginary_followup:
+    threshold_thz: -0.2
+    next_dim: [5, 5, 1]
+    kmesh_multiplier: 1.25
+    next_ediff: 1.0E-08
+    softmode_required: true
+
+phonon_dfpt_check:
+  enabled: false
+
+phonopy:
+  enabled: false          # Deprecated alias; use phonopy_fd
+
+aimd:
+  enabled: false
+
+ccd:
+  enabled: false
+
+bader:
+  enabled: false
+
+potential:
+  enabled: false
+
+strain:
+  enabled: false
+
+efield:
+  enabled: false
+
+effective_mass:
+  enabled: false
+  workflow_ready: false
+  method: pbe
+  edge_source: 03_pbeband
+  charge_parent: 02_scf
+  directions: [a, b]
+  carriers: [electron, hole]
+  delta_k: 0.01
+  points_each_side: 3
+  fit_windows: [3]
+  max_residual_meV: 10
+  valley_tolerance_meV: 5
+  max_valleys: 1
+
+mobility:
+  enabled: false
+  workflow_ready: false
+  method: pbe
+  charge_parent: 02_scf
+  effective_mass_source: 11_effective_mass/results/em_summary.yaml
+  directions: [a, b]
+  carriers: [electron, hole]
+  strain_values: [-0.5, 0.0, 0.5]
+  temperature: 300
+  max_valleys: 1
+  edge_delta_k: 0.01
+  edge_points_each_side: 3
+  elastic_r2_min: 0.99
+  deformation_potential_r2_min: 0.95
+  emass_quality_required: true
+  vacuum_std_warning_eV: 0.05
+
+adsorption:
+  enabled: false

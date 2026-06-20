@@ -1,0 +1,26 @@
+## Static SCF
+
+SYSTEM  = {{ system_name }}
+PREC    = Accurate
+ENCUT   = {{ encut }}
+NCORE   = {{ ncore }}
+IVDW    = {{ ivdw }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ISTART  = 0
+ICHARG  = 2
+ISPIN   = {{ ispin }}
+ISMEAR  = 0
+SIGMA   = 0.05
+NELM    = {{ nelm }}
+NELMIN  = {{ nelmin }}
+EDIFF   = {{ ediff }}
+
+NSW     = 0
+IBRION  = -1
+ISIF    = 2
+
+NEDOS   = 2001
+LWAVE   = .TRUE.
+LCHARG  = .TRUE.

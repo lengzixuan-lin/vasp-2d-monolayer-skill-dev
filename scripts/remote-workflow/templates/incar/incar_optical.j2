@@ -1,0 +1,30 @@
+## Optical Properties (PBE)
+
+SYSTEM  = {{ system_name }}
+PREC    = Accurate
+ENCUT   = {{ encut }}
+NCORE   = {{ ncore }}
+IVDW    = {{ ivdw }}
+LREAL   = {{ lreal }}
+ADDGRID = {{ addgrid }}
+
+ICHARG  = 11
+ISPIN   = {{ ispin }}
+
+ISMEAR  = 0
+SIGMA   = 0.05
+EDIFF   = {{ ediff }}
+NELM    = 90
+NELMIN  = 6
+
+LOPTICS = .TRUE.
+ALGO    = {{ algo }}
+CSHIFT  = {{ cshift }}
+NEDOS   = {{ nedos }}
+NBANDS  = {{ nbands_optical }}
+
+NSW     = 0
+IBRION  = -1
+
+LWAVE   = .TRUE.
+LCHARG  = .TRUE.

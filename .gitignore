@@ -1,0 +1,44 @@
+# Runtime logs
+*.log
+devspace.log
+devspace.err.log
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local secrets and machine-specific config
+.env
+.env.*
+*.pem
+*.key
+*.crt
+id_rsa*
+id_ed25519*
+
+# VASP and remote-compute outputs
+OUTCAR
+OSZICAR
+WAVECAR
+CHGCAR
+CHG
+DOSCAR
+EIGENVAL
+PROCAR
+vasprun.xml
+XDATCAR
+IBZKPT
+REPORT
+slurm-*.out
+*.err
+*.out
+
+# Large/local reference bundle.
+# Keep this local unless the user explicitly approves publishing it.
+vasp_references资料/**
+!vasp_references资料/README.md
+

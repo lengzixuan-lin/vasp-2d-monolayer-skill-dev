@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euo pipefail
+#SBATCH --job-name={{ job_name }}
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --ntasks={{ ntasks }}
+#SBATCH --partition={{ partition }}
+#SBATCH --output=slurm_%j.log
+
+# ============================================================
+# Environment / Header
+# ============================================================
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo "Number of Nodes Allocated = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks           = $SLURM_NTASKS"
+
+export PATH={{ mpi_path }}:$PATH
+export LD_LIBRARY_PATH={{ mpi_lib }}:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH={{ aocl_lib }}:$LD_LIBRARY_PATH
+export OMP_NUM_THREADS={{ omp_threads }}
+
+# ============================================================
+# Pre-VASP commands
+# ============================================================
+{% if pre_cmds -%}
+{{ pre_cmds }}
+{% endif -%}
+
+# ============================================================
+# VASP run
+# ============================================================
+echo "Starting VASP at $(date)"
+set +e
+mpirun -np $SLURM_NTASKS {{ vasp_executable }} > vasp.stdout 2> vasp.stderr
+VASP_EXITCODE=$?
+set -e
+echo "$VASP_EXITCODE" > vasp.exitcode
+echo "VASP finished at $(date) with exit code $VASP_EXITCODE"
+
+if [ "$VASP_EXITCODE" -ne 0 ]; then
+    echo "FATAL: VASP exited with non-zero code $VASP_EXITCODE" >&2
+    echo "--- vasp.stderr tail ---" >&2
+    tail -50 vasp.stderr >&2
+    exit "$VASP_EXITCODE"
+fi
+
+# ============================================================
+# Post-VASP commands
+# ============================================================
+{% if post_cmds -%}
+{{ post_cmds }}
+{% endif -%}
+
+echo "Job completed at $(date)"
