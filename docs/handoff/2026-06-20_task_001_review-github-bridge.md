@@ -6,6 +6,8 @@
 - PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2
 - First ChatGPT review: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536381171
 - Second ChatGPT review: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536664400
+- Third ChatGPT review: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536682906
+- Duplicate stale review: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536683158
 - ChatGPT review file: `CHATGPT_REVIEW.md`
 
 ## Codex Completed
@@ -16,12 +18,13 @@
 - Updated `.gitignore` so the reference bundle remains local by default and ignore rules are path-scoped.
 - Updated `CHATGPT_REVIEW.md`, `CODEX_FEEDBACK.md`, and `docs/VASP_REFERENCES_INDEX.md` to reflect the second review and confirmed bundle removal.
 - Updated the PR body so it matches the final 11-file diff and no longer reports stale changed-file information.
+- Recorded ChatGPT's third-review condition that this PR should be squash-merged, or have branch history rewritten before merge, so the earlier reference-bundle commit does not enter `main`.
 - Kept the earlier bridge/template/skill-boundary improvements from the previous commit.
 
 ## Codex Did Not Complete
 
 - Did not delete the local reference bundle files from disk.
-- Did not rewrite branch history.
+- Did not rewrite branch history in this round; that would require explicit user confirmation because it involves force-updating the PR branch.
 - Did not modify the formal installed skill directory under `C:\Users\11658\.codex\skills\vasp-2d-monolayer`.
 - Did not run `ssh lilin`, `sbatch`, or any remote compute/server write/delete operation.
 - Did not modify real calculation tasks.
@@ -44,6 +47,7 @@
 - Local bundle files preserved on disk: yes.
 - Local workflow mirror changed: no in this follow-up.
 - Server execution source changed: no.
+- Merge safety condition: squash merge the final diff, or rewrite branch history before merge; do not ordinary-merge the earlier reference-bundle commit into `main`.
 
 ## Scope Boundary
 
@@ -80,10 +84,12 @@
 
 - The local reference bundle still exists on disk but is ignored by Git.
 - The PR body has been updated to match the final diff.
+- The final diff is mergeable only with clean history: squash merge is safe; ordinary merge or rebase merge is not safe for this PR history.
 - If future curated reference summaries are needed, prefer `docs/` or force-add a small explicit file only after user approval.
 
 ## Suggested Next ChatGPT Review Focus
 
 - Confirm that PR #2 no longer carries the full reference bundle in the final diff.
 - Confirm that `.gitignore` is now path-scoped and does not hide unrelated repository PDFs/images/assets.
-- Confirm the bridge/template/skill-boundary changes are mergeable.
+- Confirm the bridge/template/skill-boundary changes remain mergeable.
+- Confirm the merge method: squash merge, unless the user separately asks Codex to rewrite branch history first.

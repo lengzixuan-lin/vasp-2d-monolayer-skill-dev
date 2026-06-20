@@ -11,7 +11,10 @@
 
 - Review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536381171
 - Second review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536664400
-- Review result: changes recommended before merge; second review says the full reference bundle must be removed from this PR before merge.
+- Third review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536682906
+- Duplicate stale review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536683158
+- Review result: conditionally mergeable. The final 11-file diff is acceptable, but the PR must be squash-merged or the branch history must be rewritten before merge so the earlier reference-bundle commit does not enter `main`.
+- Note: the duplicate stale review repeats the first review text after the final diff was already reduced. The current applicable review is the third review above, checked against the latest PR state.
 
 ## Review Goal
 
@@ -51,6 +54,7 @@
 2. Confirmed in ChatGPT second review: third-party PDFs, images, source trees, config files, and binaries should not enter long-term git history through this bridge PR.
 3. Still recommended: keep the repository private unless the user separately confirms copyright and redistribution boundaries.
 4. Implemented: server verification is user-confirmed rather than default required reading.
+5. Required before merge: use squash merge, or rewrite the branch history to remove the earlier reference-bundle commit before merging.
 
 ## Forbidden Direct Actions
 
