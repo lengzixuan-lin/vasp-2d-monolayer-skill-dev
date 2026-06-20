@@ -2,32 +2,41 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/10
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/11
-- Branch: `task_005_audit-skill-framework`
-- Task ID: `task_005_audit-skill-framework`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/12
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/13
+- Branch: `task_006_verify-vaspkit-optical-numbering`
+- Task ID: `task_006_verify-vaspkit-optical-numbering`
 
 ## This Round Summary
 
 - Synced local `main` with `origin/main`.
-- Read Issue #10 and confirmed the task is a framework audit before module-by-module workflow review.
-- Created branch `task_005_audit-skill-framework`.
-- Reviewed the skill entrypoint, agent metadata, framework references, collaboration workflow, and templates.
-- Read ChatGPT's PR #11 review and found one requested wording fix.
-- Kept the work documentation-only and framework-only.
+- Read Issue #12 and confirmed the user explicitly authorized read-only server inspection for this task.
+- Authorization source: the task-starting user message explicitly authorized read-only server inspection for VASPKIT version and optical task numbering and forbade `sbatch`, VASP runs, server dry-runs, remote writes/deletes/sync, real calculation edits, and `scripts/remote-workflow/**` implementation edits.
+- Created branch `task_006_verify-vaspkit-optical-numbering`.
+- Read `SKILL.md`, `references/server-boundary.md`, and task_004's VASPKIT optical verification plan.
+- Performed read-only `ssh lilin` inspection to verify the installed VASPKIT version and optical task numbering.
+- Kept all repository changes documentation-only.
+
+## Verified Result
+
+- Installed VASPKIT path: `/home/lilin/software/vaspkit.1.3.1/bin/vaspkit`
+- Installed VASPKIT version: `VASPKIT Standard Edition 1.3.1 (03 Dec. 2021)`
+- Verified optical task mapping:
+  - `710`: `Linear Optical Spectrums for Two-Dimensional Semiconductors`
+  - `711`: `Linear Optical Spectrums for Bulk Semiconductors`
+- Recommendation: monolayer optical post-processing should use `vaspkit -task 710`; `711` should be treated as bulk-only.
 
 ## Implemented Changes
 
-- Rewrote `SKILL.md` as a compact control-plane entrypoint with clearer trigger scope, safety gates, progressive-loading links, monolayer workflow phases, collaboration rules, and local mirror status.
-- Rephrased the server dry-run wording so Codex or another authorized operator performs confirmed server-side validation, while ChatGPT reviews returned results.
-- Updated `agents/openai.yaml` to narrow trigger language and include server dry-runs and real task edits in the explicit-confirmation boundary.
-- Added `docs/improvement-plans/2026-06-20_task_005_framework-audit.md`.
-- Updated `docs/improvement-plans/2026-06-20_task_004_improvement-plan.md` so the suggested follow-up sequence matches Issue #10: task_005 is framework audit, VASPKIT optical verification moves to task_006.
-- Added `docs/handoff/2026-06-20_task_005_audit-skill-framework.md`.
+- Added `references/vaspkit-optical-verification.md`.
+- Added `docs/improvement-plans/2026-06-20_task_006_verify-vaspkit-optical-numbering.md`.
+- Added `docs/handoff/2026-06-20_task_006_verify-vaspkit-optical-numbering.md`.
+- Recorded the exact authorization source and a future integration target requested by ChatGPT's PR #13 review.
+- Replaced `CODEX_FEEDBACK.md` with this task_006 feedback summary.
 
 ## Diff Reality Check
 
-- Actual changed file count: 6.
+- Actual changed file count: 4.
 - Large files added: no.
 - Reference bundle changed: no.
 - Third-party materials or binaries changed: no.
@@ -38,13 +47,12 @@
 
 ## Not Implemented
 
-- Did not verify the installed server VASPKIT version.
 - Did not edit `scripts/remote-workflow/**`.
-- Did not draft executable schemas or implementation code.
-- Did not run `ssh lilin`.
+- Did not modify workflow implementation files.
 - Did not run `sbatch`.
-- Did not run server-side dry runs.
-- Did not delete, overwrite, or modify remote server files.
+- Did not run VASP.
+- Did not run server-side workflow dry-runs.
+- Did not delete, overwrite, move, sync, or intentionally write remote server files.
 - Did not modify real calculation tasks.
 - Did not sync changes into the formal installed skill directory.
 
@@ -54,17 +62,19 @@
 - `git fetch origin main`
 - `git checkout main`
 - `git pull --ff-only origin main`
-- `C:\Program Files\GitHub CLI\gh.exe issue view 10 --comments --json ...`
-- `C:\Program Files\GitHub CLI\gh.exe pr view 11 --comments --json ...`
-- `C:\Program Files\GitHub CLI\gh.exe api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/11/comments`
-- `git checkout -b task_005_audit-skill-framework`
+- `git checkout -b task_006_verify-vaspkit-optical-numbering`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 12 --comments --json ...`
+- Read-only `ssh lilin` inspection commands listed in `references/vaspkit-optical-verification.md`
 - `git diff --check`
 - `git diff --cached`
-- `git commit -m "task_005: audit skill framework"`
-- `git push -u origin task_005_audit-skill-framework`
+- `git commit -m "task_006: verify vaspkit optical numbering"`
+- `git push -u origin task_006_verify-vaspkit-optical-numbering`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 13 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/13/comments`
 
 ## Remaining Notes
 
-- ChatGPT's requested dry-run wording fix has been applied and needs re-review.
-- The next implementation sequence should start with task_006 for VASPKIT optical task-number verification only after explicit server-inspection approval.
+- This result is specific to the server's current VASPKIT path/version.
+- Successful generation of 2D optical output files was not run because that would require real calculation inputs and would write output files.
+- Later workflow documentation should link to `references/vaspkit-optical-verification.md`, but this PR intentionally does not modify workflow implementation.
