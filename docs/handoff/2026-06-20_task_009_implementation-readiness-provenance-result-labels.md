@@ -26,6 +26,7 @@ No workflow implementation files were modified.
 - `cmd_new` needs a separate input provenance path for `00_input`, because it is not a `Module` instance.
 - Generic result labels should be written during collection, not submission, because labels need output evidence and parser/source-file context.
 - Effective-mass and mobility labels should be written by their embedded manager `collect_results` phases, next to `em_summary.yaml` and `mobility_summary.yaml`.
+- After ChatGPT review, the implementation plan now includes explicit VASPKIT/JAMIP-derived audit anchors for VASPKIT task provenance, task/status separation, scheduler state, restart/overwrite visibility, and phonon subtask manifests.
 - The requested normalized module names do not fully match current local directory names:
   - `03_band` maps to `03_pbeband`.
   - `06_potential` likely maps to monolayer `07_vacuum`, while `15_potential` is heterojunction-specific.

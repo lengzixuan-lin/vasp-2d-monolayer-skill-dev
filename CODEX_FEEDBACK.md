@@ -34,6 +34,7 @@
 - Identified where future implementation should generate or extend `module_provenance.yaml`.
 - Identified where future implementation should generate `result_labels.yaml` or equivalent summary labels.
 - Documented existing and missing dependency, convergence, restart, overwrite, and parser-source information.
+- Added ChatGPT-requested VASPKIT/JAMIP-derived audit anchors to make future implementation traceability explicit.
 - Proposed three implementation batches:
   - Batch A: core provenance writer plus `00_input`, `01_opt`, `02_scf`, `03_pbeband`, `04_dos`.
   - Batch B: HSE, optical, and phonopy finite-displacement provenance/result labels.
@@ -78,6 +79,8 @@
 - `git commit -m "task_009: map provenance result label implementation plan"`
 - `git push -u origin task_009_implementation-readiness-provenance-result-labels`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 21 --comments --json ...`
+- `git fetch origin main`
 
 ## Remaining Notes
 

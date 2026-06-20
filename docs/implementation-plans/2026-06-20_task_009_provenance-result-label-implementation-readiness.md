@@ -11,6 +11,15 @@ This document converts the schema foundation in `references/provenance-and-resul
 - `module_provenance.yaml`
 - `result_labels.yaml`, or equivalent labels embedded in module/project summaries
 
+## VASPKIT/JAMIP-derived audit anchors
+
+The mapping below uses these reference-derived checks as implementation anchors:
+
+- Treat VASPKIT as a helper, not an unchecked source of truth. Generated KPOINTS/POTCAR, band paths, post-processing outputs, and task selections need provenance, review state, and 2D-specific guardrails.
+- Record VASPKIT-sensitive steps explicitly: task 102 for KPOINTS/POTCAR generation, task 302 for PBE band paths, task 251 for HSE band KPOINTS, task 710 for verified 2D optical conversion, and parser/source labels for DOS/PDOS, Fermi shifts, effective-mass fit windows, and fit quality.
+- Preserve the JAMIP-like separation of task declaration, input rendering, execution, status/provenance, queue management, and result collection. Property modules should remain children of successful parent stages.
+- Make scheduler/status state reviewable: job IDs, dependency checks, restart/overwrite policy, diagnostic vs final status, and phonon finite-displacement subtask manifests should be visible in provenance or labels.
+
 ## Current orchestration map
 
 Primary local source files:
