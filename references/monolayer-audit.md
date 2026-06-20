@@ -100,69 +100,12 @@ Do not copy it blindly. Re-check these items for each material:
 - `NCORE = 8` is server/performance-specific, not a materials parameter.
 - `SIGMA = 0.1` is usable for relaxation, but `0.05` is often cleaner for final SCF/DOS of semiconductors.
 
-## Default Versus Optional Tasks
+## Module and Server Detail References
 
-Default standard chain (enabled by default in precision_standard.yaml):
+Keep this file focused on audit and submission readiness. Load these focused references when details are needed:
 
-- structure optimization
-- SCF
-- PBE band structure
-- DOS/PDOS
-- HSE06 self-consistent calculation
-- HSE06 band structure
-- electrostatic potential and vacuum level
-- work function and band-edge alignment from consistent references
-- optical absorption with VASP `LOPTICS` plus VASPKIT 710 conversion
-- phonon stability using finite-displacement `phonopy_fd`
-- effective mass (`11_effective_mass`; local in-plane k-line curvature fitting around CBM/VBM)
-- carrier mobility (`12_mobility`; 2D deformation-potential manager using `11_effective_mass` results)
-
-Optional/high-cost chain, requiring confirmation:
-
-- AIMD
-- SOC (spin-orbit coupling)
-
-Disabled by default (heterojunction-only modules):
-
-- strain regulation
-- external electric field
-- charge-density difference (CCD)
-- Bader charge transfer
-- electrostatic potential (LVTOT/LVHAR)
-
-Not default for a monolayer-only workflow:
-
-- interface binding energy
-- charge-density difference across an interface
-- Bader charge transfer across an interface
-- HER/OER adsorption free energies
-
-These require a separate adsorption, catalysis, or heterojunction scope.
-
-## Server Workflow Checks
-
-Before trusting generated jobs, inspect or verify these known risk points in `/home/lilin/calculation/1_dft/02_workflow`:
-
-- `config/precision_standard.yaml`: `IVDW=11` is DFT-D3 zero damping in VASP, not D3(BJ). Use `IVDW=12` for D3(BJ), or document why `11` is intended.
-- `modules/base.py`: VASPKIT task 102 should be run as `102 -> 2 -> 0.04`; the INCAR it generates must be overwritten by the reviewed template.
-- `modules/base.py`: downstream jobs should reuse the optimization POTCAR unless the POSCAR composition or element order changes.
-- `modules/base.py`: the old heuristic-only `detect_material_type()` has been replaced by a user prompt (1=monolayer, 2=heterojunction) in `workflow.py new`. The `--material-type` CLI flag provides a noninteractive override. The heuristic remains available as a fallback for programmatic use.
-- `modules/base.py`: POSCAR parsing assumes VASP 5 element-symbol and count lines; check behavior for selective dynamics and unusual POSCAR formats.
-- `templates/sub.j2`: avoid hardcoded VASP executable paths when config already provides `vasp.executable`.
-- SOC calculations require `vasp_ncl`; verify `sub.vasp` switches from `vasp_std` to `vasp_ncl` for SOC modules.
-- HSE workflows must distinguish `05_hse_scf` from `05_hse_band` and preserve method labels during result extraction.
-- HSE band workflows using VASPKIT 251 regenerate KPOINTS; do not reuse a PBE `WAVECAR` with the changed hybrid-band KPOINTS.
-- For `band`, `dos`, `hse_scf`, `hse_band`, `optical`, `bader`, `ccd`, and `potential`, the generated submit script should hard-fail before VASP if the required parent `CHGCAR` is missing.
-- PBE band and HSE band directories should not show an ordinary SCF KPOINTS as if it were final; prepared `KPOINTS` should clearly state that final KPOINTS are generated at runtime by VASPKIT 302 or 251.
-- Each prepared module now writes `kpoints_summary.yaml` with 2D validation results (Nkz=1 check for regular meshes, kz=0 check for line-mode KPOINTS).
-- `sub.vasp` now includes a 2D k-point runtime guard that exits before VASP if kz != 0 or Nkz != 1.
-- Optical calculations need an explicit and justified `NBANDS`, not just an unexplained default. For 2D materials, `LOPTICS` is only the raw VASP response step; require VASPKIT 710 conversion before treating the output as 2D optical absorption data.
-- Effective-mass and mobility calculations are not complete just because a VASP INCAR exists. Effective mass requires the `11_effective_mass` manager output: band-edge confirmation, explicit in-plane local KPOINTS around CBM/VBM, curvature-fit quality checks, and `results/em_summary.yaml`. Mobility requires the `12_mobility` manager output: reviewed effective-mass inputs, in-plane strain relax/SCF subruns, LOCPOT vacuum alignment, `C2D`/`E1` fitting quality checks, and `results/mobility_summary.yaml`.
-- For 2D phonons, `phonopy_fd` is preferred over the old single-job `IBRION=8` check. Debug runs use `PREC=Accurate`, `EDIFF=1E-06`, and nominal `dim=3 3 1` adjusted by in-plane lattice length; production runs use `PREC=Accurate`, `EDIFF=1E-07`, and nominal `dim=4 4 1`. Keep `dim_z=1`, generate `FORCE_SETS`, and review any actionable imaginary mode before softmode displacement. If imaginary modes persist, repeat with enlarged in-plane supercell, denser KPOINTS, and tighter `EDIFF` before searching along the imaginary eigenvector.
-- AIMD needs user-approved temperature, timestep, and simulation length.
-- Email notification should not hard-code a personal email address unless the user asks for it.
-- Any `cmd_submit` or dependency scheduler code should be tested in dry-run mode before bulk submission.
-- Automatic retry should remain disabled by default. Failure handling should record an error signature and suggested actions in `workflow_status.yaml`.
+- `references/workflow-modules.md`: module order, optional/high-cost modules, dependency files, KPOINTS rules, HSE/optical/phonon/effective-mass/mobility notes, and method labels.
+- `references/server-boundary.md`: local mirror versus server execution truth, confirmation gates, GitHub CLI preflight, sync truth, and handoff wording.
 
 ## Submission Review Template
 
@@ -176,7 +119,7 @@ Before asking the user for approval to submit, present:
 - VASP executable and submit template path
 - estimated resource class or expected high-cost steps
 - nonstandard assumptions and unresolved risks
-- output from `python workflow.py submit <project_name> --dry-run`
+- output from `python workflow.py submit <project_name> --dry-run`, if the user has confirmed server dry-run access
 
 Only submit after the user explicitly agrees.
 

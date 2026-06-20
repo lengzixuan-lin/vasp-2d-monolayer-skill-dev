@@ -13,6 +13,7 @@
 - Updated `docs/GITHUB_COLLABORATION_WORKFLOW.md` with GitHub CLI authentication preflight guidance.
 - Updated `agents/openai.yaml` to align the skill UI prompt with the explicit safety gates.
 - Updated `CODEX_FEEDBACK.md` for this task.
+- Follow-up Issue #5 expanded the same PR into progressive-loading docs; see `docs/handoff/2026-06-20_task_002_progressive-loading-docs.md`.
 
 ## Codex Did Not Complete
 
@@ -27,13 +28,16 @@
 - `docs/GITHUB_COLLABORATION_WORKFLOW.md`
 - `CODEX_FEEDBACK.md`
 - `docs/handoff/2026-06-20_task_002_review-skill-rules.md`
+- Follow-up changed files are listed in `docs/handoff/2026-06-20_task_002_progressive-loading-docs.md`.
 
 ## Diff Reality Check
 
-- Actual changed file count: 5.
+- Actual changed file count after Issue #5 follow-up: 9.
 - Large files added: no.
 - Reference bundle changed: no.
 - Third-party materials or binaries changed: no.
+- `references/` changed: yes, focused Markdown references only.
+- `scripts/remote-workflow/` changed: no.
 - Local workflow mirror changed: no.
 - Server execution source changed: no.
 
@@ -56,6 +60,7 @@
 - `git commit -m "task_002: review skill rules"`
 - `git push -u origin task_002_review-skill-rules`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- Follow-up checks are listed in `docs/handoff/2026-06-20_task_002_progressive-loading-docs.md`.
 
 ## External Actions
 
@@ -64,6 +69,7 @@
 - Remote writes/deletes: no
 - GitHub Issue created: yes, Issue #3
 - GitHub PR created: yes, PR #4
+- Follow-up Issue read: yes, Issue #5
 
 ## Sync Truth
 
@@ -82,3 +88,4 @@
 - Whether the heterojunction/catalysis boundary is clear enough.
 - Whether the GitHub CLI preflight instructions are sufficient for Codex review and PR workflows.
 - Whether the safety gates block all SSH, Slurm, remote write, and real-calculation actions until user confirmation.
+- Whether the progressive-loading split in Issue #5 preserves essential safety rules while shortening `SKILL.md`.
