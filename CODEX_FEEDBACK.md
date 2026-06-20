@@ -13,6 +13,8 @@
 - Started from clean branch `task_002_review-skill-rules`.
 - Read open Issues and PR #4 with GitHub CLI.
 - Found follow-up Issue #5 requesting progressive-loading documentation structure.
+- Read ChatGPT's PR review comment on PR #4.
+- Fixed the review's traceability request by updating the PR body to say this PR covers both Issue #3 and Issue #5, and to close Issue #5.
 - Refactored `SKILL.md` into a shorter entrypoint with trigger/scope, required reading, safety gates, high-level workflow, collaboration rules, and local mirror status.
 - Moved stable module details into `references/workflow-modules.md`.
 - Moved server/GitHub/sync safety boundaries into `references/server-boundary.md`.
@@ -26,6 +28,7 @@
 - `references/workflow-modules.md` documents module order, parent/child dependencies, required files, KPOINTS rules, module notes, and method labels.
 - `references/server-boundary.md` documents local mirror versus server truth, confirmation gates, GitHub CLI preflight, handoff sync truth, and submission boundary.
 - `docs/handoff/2026-06-20_task_002_progressive-loading-docs.md` records the follow-up review implementation.
+- PR #4 body now includes `Closes #3` and `Closes #5`.
 
 ## Diff Reality Check
 
@@ -58,6 +61,7 @@
 - `C:\Program Files\GitHub CLI\gh.exe issue view 5 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,labels,url`
 - `C:\Program Files\GitHub CLI\gh.exe issue view 3 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,labels,url`
 - `C:\Program Files\GitHub CLI\gh.exe pr view 4 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,reviews,url`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 4 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json reviews,comments,reviewDecision,url,title`
 - `rg --files references docs`
 - `rg -n "^## " references/monolayer-audit.md`
 - `git diff --stat`
@@ -67,5 +71,5 @@
 
 ## Remaining Notes
 
-- Ask ChatGPT to review whether `SKILL.md` is now concise enough without losing essential safety gates.
-- Ask ChatGPT to check whether the new reference split improves progressive loading and whether server/calculation boundaries remain explicit.
+- ChatGPT review said the PR is close to mergeable after fixing Issue #5 traceability.
+- The requested traceability fix has been applied in the PR body.
