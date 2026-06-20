@@ -9,6 +9,10 @@
 
 ## This Round Summary
 
+- Read ChatGPT's PR #7 review comment.
+- Confirmed the content was accepted as close to mergeable, with the main blocker being GitHub mergeability metadata.
+- Fetched `origin/main` and confirmed the local branch was already up to date with `main`.
+- Added the optional consolidated future-review-targets section requested by ChatGPT.
 - Read online Issue #6 and confirmed it has no additional comments.
 - Merged PR #4 into `main` with squash merge before starting task_003.
 - Synced local `main` and created branch `task_003_curate-vasp-references`.
@@ -26,6 +30,7 @@
 - Added `docs/reference-summaries/scheduler-submission-patterns.md`.
 - Added `docs/reference-summaries/result-extraction-patterns.md`.
 - Added task handoff at `docs/handoff/2026-06-20_task_003_curate-vasp-references.md`.
+- Added future review targets to `docs/reference-summaries/README.md`.
 
 ## Sources Summarized
 
@@ -84,8 +89,11 @@
 - `git commit -m "task_003: curate vasp references"`
 - `git push -u origin task_003_curate-vasp-references`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 7 --json reviews,comments,body,files`
+- `git fetch origin main`
+- `git merge --no-edit origin/main`
 
 ## Remaining Notes
 
-- ChatGPT should review whether the summaries are specific enough to guide future workflow improvements without copying raw third-party material.
-- Future tasks can use these summaries to propose targeted updates to `SKILL.md`, `references/workflow-modules.md`, or `scripts/remote-workflow/`, but this task intentionally does not change workflow code.
+- ChatGPT's requested optional future review target section has been added.
+- This follow-up push should refresh PR #7 mergeability on GitHub; if GitHub still reports not mergeable, re-check branch protection or conflict details from the PR UI.

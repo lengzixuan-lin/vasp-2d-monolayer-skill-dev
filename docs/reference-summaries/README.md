@@ -41,6 +41,16 @@ Use these summaries as a learning layer before reviewing future changes to:
 
 The summaries are not a request to copy JAMIP or VASPKIT behavior directly. They are meant to identify reusable workflow design patterns, safety checks, provenance requirements, and result-extraction expectations that can guide future `vasp-2d-monolayer` reviews.
 
+## Future Review Targets
+
+These summaries point to several concrete follow-up review targets:
+
+- Verify the installed VASPKIT optical task numbering before hard-coding 710/711-style post-processing commands.
+- Review the module provenance schema for parent directory, `CONTCAR`, `CHGCAR`, `WAVECAR`, runtime KPOINTS, executable, INCAR template, and post-processing source.
+- Review finite-displacement phonon subtask manifests so every displacement job, `FORCE_SETS`, and imaginary-mode follow-up remains traceable.
+- Review scheduler configuration boundaries: queue/partition, resources, environment setup, MPI launcher, VASP executable, SOC executable, and maximum concurrent jobs should stay configurable.
+- Review result-summary method/source labels for band gap, CBM/VBM, Fermi level, vacuum level, work function, DOS/PDOS, optical spectra, phonons, effective mass, and mobility.
+
 ## Summary Files
 
 - `source-index.md`: source paths, categories, summary status, and exclusion rationale.

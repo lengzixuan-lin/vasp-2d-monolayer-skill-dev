@@ -8,6 +8,9 @@
 
 ## Codex Completed
 
+- Read ChatGPT's PR #7 review comment.
+- Fetched `origin/main` and confirmed the task branch was already up to date.
+- Added a consolidated future-review-targets section to `docs/reference-summaries/README.md`.
 - Confirmed online Issue #6 has no extra comments.
 - Squash-merged PR #4 and synced local `main`.
 - Created branch `task_003_curate-vasp-references`.
@@ -65,6 +68,9 @@
 - `git commit -m "task_003: curate vasp references"`
 - `git push -u origin task_003_curate-vasp-references`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 7 --json reviews,comments,body,files`
+- `git fetch origin main`
+- `git merge --no-edit origin/main`
 
 ## External Actions
 
@@ -75,6 +81,7 @@
 - GitHub Issue read: yes, Issue #6
 - GitHub PR #4 merged before this branch: yes
 - GitHub PR #7 created: yes
+- ChatGPT PR #7 review read: yes
 
 ## Sync Truth
 
@@ -91,8 +98,5 @@
 
 ## Suggested Next ChatGPT Review Focus
 
-- Whether the summaries are specific enough to improve `vasp-2d-monolayer` workflow review.
-- Whether the summaries avoid excessive raw third-party content.
-- Whether source paths and exclusions are clear.
-- Whether no raw bundle, binaries, images, generated caches, or source trees were committed.
-- Which concrete future improvements should be proposed for `SKILL.md`, `references/workflow-modules.md`, and the local workflow mirror review plan.
+- Whether the new future-review-targets section addresses ChatGPT's optional cleanup request.
+- Whether PR #7 is now mergeable after the follow-up push refreshes GitHub metadata.
