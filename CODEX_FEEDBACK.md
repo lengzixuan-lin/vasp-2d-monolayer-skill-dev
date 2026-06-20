@@ -2,31 +2,32 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/16
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/17
-- Branch: `task_007_integrate-vaspkit-optical-verification`
-- Task ID: `task_007_integrate-vaspkit-optical-verification`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/18
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/19
+- Branch: `task_008_provenance-result-label-schema-foundation`
+- Task ID: `task_008_provenance-result-label-schema-foundation`
 
 ## This Round Summary
 
+- Read PR #17 review, confirmed it was mergeable, and merged PR #17 with squash merge.
 - Synced local `main` with `origin/main`.
-- Read Issue #16 and confirmed this task is documentation-only.
-- Created branch `task_007_integrate-vaspkit-optical-verification`.
-- Read `references/workflow-modules.md` and `references/vaspkit-optical-verification.md`.
-- Integrated the task_006 VASPKIT optical verification result into workflow documentation.
+- Read Issue #18 and confirmed this task is documentation/spec-only.
+- Created branch `task_008_provenance-result-label-schema-foundation`.
+- Read `references/workflow-modules.md`, task_004 improvement plan, and result-extraction summary docs.
+- Added a schema foundation for `module_provenance.yaml` and result-summary method/source labels.
 
 ## Implemented Changes
 
-- Updated the `references/workflow-modules.md` optical section to link `references/vaspkit-optical-verification.md`.
-- Clarified that VASP `LOPTICS` is the raw dielectric-response step.
-- Clarified that VASPKIT `710` is the verified 2D converted-spectra step.
-- Clarified that VASPKIT `711` is bulk-only and must not be used for monolayer optical absorption summaries.
-- Added optical provenance expectations for VASPKIT path/version, task number `710`, `POSCAR`, `vasprun.xml` or `REAL.in`/`IMAG.in`, `LOPTICS`, `NBANDS`, and generated 2D output files such as `ABSORPTION_2D.dat`.
-- Added `docs/handoff/2026-06-20_task_007_integrate-vaspkit-optical-verification.md`.
+- Added `references/provenance-and-result-label-schema.md`.
+- Defined `module_provenance.yaml` expectations for module identity, source structure, parent files, generated inputs, executable/environment, runtime conditions, dependency status, restart/overwrite policy, post-processing, and review state.
+- Defined result-summary label expectations for method/source labels, source files, parser/tool, convergence/status, transformation, uncertainty/fit quality, and diagnostic/final status.
+- Added representative snippets for `01_opt`, `02_scf`, `03_band`, `04_dos`, `05_hse_scf`, `05_hse_band`, `07_optical`, `08_phonopy_fd`, `11_effective_mass`, and `12_mobility`.
+- Updated `references/workflow-modules.md` to link the new schema document.
+- Added `docs/handoff/2026-06-20_task_008_provenance-result-label-schema-foundation.md`.
 
 ## Diff Reality Check
 
-- Actual changed file count: 3.
+- Actual changed file count: 4.
 - Large files added: no.
 - Reference bundle changed: no.
 - Third-party materials or binaries changed: no.
@@ -45,23 +46,25 @@
 - Did not delete, overwrite, move, sync, or write remote server files.
 - Did not modify real calculation tasks.
 - Did not edit `scripts/remote-workflow/**`.
+- Did not implement schema writers or parsers.
 - Did not sync changes into the formal installed skill directory.
 
 ## Checks Run
 
 - `git status --short --branch`
-- `git fetch origin main`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 17 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr merge 17 --squash --delete-branch`
 - `git checkout main`
 - `git pull --ff-only origin main`
-- `git checkout -b task_007_integrate-vaspkit-optical-verification`
-- `C:\Program Files\GitHub CLI\gh.exe issue view 16 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 18 --comments --json ...`
+- `git checkout -b task_008_provenance-result-label-schema-foundation`
 - `git diff --check`
 - `git diff --cached`
-- `git commit -m "task_007: integrate vaspkit optical verification"`
-- `git push -u origin task_007_integrate-vaspkit-optical-verification`
+- `git commit -m "task_008: add provenance and result label schema"`
+- `git push -u origin task_008_provenance-result-label-schema-foundation`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
-- This PR only integrates verified optical guidance into documentation.
-- Any workflow implementation change should be handled in a later reviewed task.
+- This PR is schema/spec documentation only.
+- Future implementation tasks should add writers/parsers module by module after this schema foundation is reviewed.
