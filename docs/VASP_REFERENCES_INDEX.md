@@ -1,17 +1,17 @@
 # VASP References Index
 
-The repository contains a reference bundle at:
+The local workspace contains a reference bundle at:
 
 ```text
 vasp_references资料/
 ```
 
-This bundle was originally ignored by git. It is now intentionally tracked after explicit user approval so ChatGPT can read it through GitHub and provide better review suggestions.
+This bundle is local-only by default and should not enter this bridge PR.
 
-Important review note: ChatGPT recommended splitting the full bundle into a
-separate PR or replacing it with curated summaries. Codex has not removed the
-tracked bundle in this PR because that deletion/restructuring needs explicit
-user confirmation.
+ChatGPT's second review recorded the user's confirmation that the full bundle
+should not remain in PR #2 and that third-party PDFs, images, source trees,
+config files, and binaries should not enter long-term git history through this
+bridge task.
 
 When ChatGPT needs this material for review, prefer these safer approaches:
 
@@ -24,20 +24,20 @@ Current known local bundle categories:
 - JAMIP materials
 - VASPKIT materials
 
-Current upload summary:
+Previous preflight summary:
 
 - Total tracked bundle size before git compression: about 58 MB.
 - Largest single file found before upload: about 14.7 MB.
 - No file exceeded GitHub's ordinary 100 MB single-file limit during preflight inspection.
 
-Current risk summary:
+Current PR policy:
 
-- The current PR changes 404 files relative to `main`.
-- `vasp_references资料/` accounts for 399 tracked files.
-- The bundle includes PDFs, images, generated JSON, third-party source files,
-  configuration files, and binary/tool-like files.
-- Keep the repository private unless the user separately confirms copyright and
-  redistribution boundaries.
+- The full `vasp_references资料/` bundle has been removed from Git tracking for
+  this PR with `git rm --cached`, preserving local files.
+- The bridge PR should only carry workflow, template, handoff, feedback, and
+  safety-boundary documents.
+- Future reference material should be curated into small Markdown/YAML/TXT
+  summaries unless the user explicitly approves a separate reference-bundle PR.
 
 Future policy:
 

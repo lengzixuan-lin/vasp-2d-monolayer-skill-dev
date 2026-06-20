@@ -9,53 +9,46 @@
 
 ## This Round Summary
 
-- Read ChatGPT's PR review from PR #2.
-- Applied local-only documentation and template changes that do not require extra user confirmation.
-- Did not run `ssh lilin`, `sbatch`, or any remote write/delete operation.
+- Read ChatGPT's second PR review from PR #2.
+- Removed the full `vasp_references资料/` bundle from Git tracking with `git rm --cached`, preserving the local files.
+- Updated `.gitignore` so the reference bundle remains local by default and future additions require explicit force-add or relocation into curated docs.
+- Updated review, feedback, handoff, and reference-index docs to reflect that the user has confirmed the full bundle should not remain in this PR.
+- Did not run `ssh lilin`, `sbatch`, or any remote compute/server write operation.
 - Did not modify real calculation tasks.
-- Did not remove `vasp_references资料/`; ChatGPT marked that as requiring user confirmation.
 
 ## Implemented Changes
 
-- Backfilled PR #2 URL in `CHATGPT_REVIEW.md`, `CODEX_FEEDBACK.md`, and the handoff file.
-- Strengthened `.gitignore` so future full reference bundles, generated caches, PDFs, images, binaries, and vendored tools require explicit approval.
-- Added diff reality, scope boundary, and sync truth fields to:
-  - `.github/PULL_REQUEST_TEMPLATE.md`
-  - `.github/ISSUE_TEMPLATE/task.md`
-  - `docs/handoff/TEMPLATE.md`
-- Updated `docs/GITHUB_COLLABORATION_WORKFLOW.md` to require actual changed-file count, large-file status, reference-bundle status, and local-mirror/server-source clarity.
-- Updated `docs/VASP_REFERENCES_INDEX.md` with current PR file-count risk and future reference-bundle policy.
-- Updated `SKILL.md` so server SSH inspection is no longer default required reading.
-- Updated `agents/openai.yaml` default prompt to prefer local context first and require confirmation before SSH, Slurm, or remote writes.
+- `vasp_references资料/` is no longer tracked for this branch's final PR state.
+- `.gitignore` now scopes reference-bundle ignore behavior to `vasp_references资料/**` instead of globally ignoring every PDF/image/binary in the repository.
+- `CHATGPT_REVIEW.md` now records the second review URL and updated confirmation status.
+- `docs/VASP_REFERENCES_INDEX.md` now describes the bundle as local-only for this PR.
+- `CODEX_FEEDBACK.md` and the handoff file now state that reference-bundle removal is confirmed and implemented.
 
 ## Diff Reality Check
 
-- Actual changed files relative to `main` before this follow-up: 404.
-- Tracked files under `vasp_references资料/`: 399.
-- Full bundle size before git compression: about 58 MB.
-- Largest known file before upload: about 14.7 MB.
-- Large files/reference bundle changed: yes, from the earlier commit in this PR.
+- Tracked files under `vasp_references资料/` after `git rm --cached`: 0.
+- Full local bundle files were preserved on disk.
+- Final PR should no longer add third-party PDFs, images, generated JSON, source trees, config files, or binaries from `vasp_references资料/`.
 - Local workflow mirror changed: no in this follow-up.
 - Server execution source changed: no.
 
 ## Not Implemented
 
-- Did not split or remove `vasp_references资料/`.
-- Did not rewrite PR history.
+- Did not delete the local reference bundle from disk.
+- Did not rewrite PR history; the branch adds a normal follow-up commit that removes the bundle from the final PR diff.
 - Did not update the formal installed skill directory at `C:\Users\11658\.codex\skills\vasp-2d-monolayer`.
 - Did not sync anything to `lilin`.
 
-## User Confirmation Still Needed
-
-- Whether to keep the full reference bundle in PR #2.
-- Whether third-party PDFs, images, source trees, config files, and binaries may remain in git history.
-- Whether the private repository will stay private.
-- Whether Codex may remove or restructure `vasp_references资料/` in a follow-up commit.
-
 ## Checks Run
 
+- `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
 - `git status --short --branch`
-- `gh` via full path: `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
-- `gh` via full path: `C:\Program Files\GitHub CLI\gh.exe pr view 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev`
-- GitHub PR comments were also read through the Codex GitHub plugin.
+- GitHub PR comments read through the Codex GitHub plugin.
+- `git rm -r --cached -- "vasp_references资料"`
+- `git ls-files "vasp_references资料/*"`
 - Local diffs reviewed before staging.
+
+## Remaining Notes
+
+- The PR body was stale before this round and should be updated to match the new final diff.
+- Curated reference summaries should usually be added under `docs/`; if a small file must remain under `vasp_references资料/`, use an explicit force-add only after user approval.

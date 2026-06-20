@@ -10,7 +10,8 @@
 ## ChatGPT Review Source
 
 - Review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536381171
-- Review result: changes recommended before merge.
+- Second review URL: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2#pullrequestreview-4536664400
+- Review result: changes recommended before merge; second review says the full reference bundle must be removed from this PR before merge.
 
 ## Review Goal
 
@@ -44,13 +45,12 @@
 - Backfill PR #2 URL in review, feedback, and handoff records.
 - Do not delete or split `vasp_references资料/` without explicit user confirmation.
 
-## User Confirmation Still Needed
+## User Confirmation Status
 
-1. Should the full `vasp_references资料/` bundle remain in PR #2, be moved to a separate PR, or be replaced by curated summaries?
-2. Are third-party PDFs, images, source trees, config files, and binaries allowed to remain in long-term git history?
-3. Will the repository remain private permanently?
-4. Should server verification always require explicit user confirmation before SSH?
-5. May Codex remove or restructure the reference bundle in this PR?
+1. Confirmed in ChatGPT second review: the full `vasp_references资料/` bundle should not remain in PR #2.
+2. Confirmed in ChatGPT second review: third-party PDFs, images, source trees, config files, and binaries should not enter long-term git history through this bridge PR.
+3. Still recommended: keep the repository private unless the user separately confirms copyright and redistribution boundaries.
+4. Implemented: server verification is user-confirmed rather than default required reading.
 
 ## Forbidden Direct Actions
 
