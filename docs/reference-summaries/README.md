@@ -51,6 +51,10 @@ These summaries point to several concrete follow-up review targets:
 - Review scheduler configuration boundaries: queue/partition, resources, environment setup, MPI launcher, VASP executable, SOC executable, and maximum concurrent jobs should stay configurable.
 - Review result-summary method/source labels for band gap, CBM/VBM, Fermi level, vacuum level, work function, DOS/PDOS, optical spectra, phonons, effective mass, and mobility.
 
+Task_004 converts these targets into a reviewable improvement plan:
+
+- `docs/improvement-plans/2026-06-20_task_004_improvement-plan.md`
+
 ## Summary Files
 
 - `source-index.md`: source paths, categories, summary status, and exclusion rationale.
