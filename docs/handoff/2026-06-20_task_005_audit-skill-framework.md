@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/10
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/11
 - ChatGPT review file: pending
 
 ## Codex Completed
@@ -56,6 +56,11 @@
 - `git pull --ff-only origin main`
 - `gh issue view 10 --comments --json ...`
 - `git checkout -b task_005_audit-skill-framework`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_005: audit skill framework"`
+- `git push -u origin task_005_audit-skill-framework`
+- `gh pr create ...`
 
 ## External Actions
 
