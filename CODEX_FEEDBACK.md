@@ -2,41 +2,62 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/3
-- Follow-up Issue / ChatGPT review: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/5
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/4
-- Branch: `task_002_review-skill-rules`
-- Task ID: `task_002_review-skill-rules`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/6
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/7
+- Branch: `task_003_curate-vasp-references`
+- Task ID: `task_003_curate-vasp-references`
 
 ## This Round Summary
 
-- Started from clean branch `task_002_review-skill-rules`.
-- Read open Issues and PR #4 with GitHub CLI.
-- Found follow-up Issue #5 requesting progressive-loading documentation structure.
-- Read ChatGPT's PR review comment on PR #4.
-- Fixed the review's traceability request by updating the PR body to say this PR covers both Issue #3 and Issue #5, and to close Issue #5.
-- Refactored `SKILL.md` into a shorter entrypoint with trigger/scope, required reading, safety gates, high-level workflow, collaboration rules, and local mirror status.
-- Moved stable module details into `references/workflow-modules.md`.
-- Moved server/GitHub/sync safety boundaries into `references/server-boundary.md`.
-- Reduced duplication in `references/monolayer-audit.md` by keeping it focused on audit/submission readiness and pointing to focused references.
-- Added a new progressive-loading handoff file.
+- Read ChatGPT's PR #7 review comment.
+- Confirmed the content was accepted as close to mergeable, with the main blocker being GitHub mergeability metadata.
+- Fetched `origin/main` and confirmed the local branch was already up to date with `main`.
+- Added the optional consolidated future-review-targets section requested by ChatGPT.
+- Read online Issue #6 and confirmed it has no additional comments.
+- Merged PR #4 into `main` with squash merge before starting task_003.
+- Synced local `main` and created branch `task_003_curate-vasp-references`.
+- Read local safety boundary docs before touching the reference bundle.
+- Reviewed local `vasp_references资料/` text and source materials in read-only mode.
+- Created curated Markdown summaries under `docs/reference-summaries/`.
+- Did not commit raw PDFs, images, generated JSON/cache files, source trees, binaries, or the raw `vasp_references资料/` bundle.
 
 ## Implemented Changes
 
-- `SKILL.md` is now shorter and points to focused reference files for progressive loading.
-- `references/monolayer-audit.md` keeps P0/P1 blockers, scope gate, mandatory input audit, optimization rules, submission review template, and result extraction minimum.
-- `references/workflow-modules.md` documents module order, parent/child dependencies, required files, KPOINTS rules, module notes, and method labels.
-- `references/server-boundary.md` documents local mirror versus server truth, confirmation gates, GitHub CLI preflight, handoff sync truth, and submission boundary.
-- `docs/handoff/2026-06-20_task_002_progressive-loading-docs.md` records the follow-up review implementation.
-- PR #4 body now includes `Closes #3` and `Closes #5`.
+- Added `docs/reference-summaries/README.md`.
+- Added `docs/reference-summaries/source-index.md`.
+- Added `docs/reference-summaries/vaspkit-task-map.md`.
+- Added `docs/reference-summaries/jamip-vasp-workflow-patterns.md`.
+- Added `docs/reference-summaries/scheduler-submission-patterns.md`.
+- Added `docs/reference-summaries/result-extraction-patterns.md`.
+- Added task handoff at `docs/handoff/2026-06-20_task_003_curate-vasp-references.md`.
+- Added future review targets to `docs/reference-summaries/README.md`.
+
+## Sources Summarized
+
+- `vasp_references资料/vaspkit/vaspkit_readme.md`
+- `vasp_references资料/JAMIP/JAMIP-V1.0.1.Manual-Chs.pdf-b1938462-d000-4f32-804a-ffd5d1b44a05/JAMIP.md`
+- `vasp_references资料/JAMIP/jamip-1.0.2/README`
+- `vasp_references资料/JAMIP/jamip-1.0.2/jamip/abtools/vasp/*.py`
+- `vasp_references资料/JAMIP/jamip-1.0.2/jamip/compute/*.py`
+- `vasp_references资料/JAMIP/jamip-1.0.2/jamip/analysis/vasp/*.py`
+
+## Intentionally Excluded
+
+- Raw `vasp_references资料/` directory.
+- Original PDFs.
+- Extracted image folders.
+- Generated parser/cache JSON files.
+- HTML conversion outputs.
+- JAMIP third-party source tree.
+- Binaries and executables.
 
 ## Diff Reality Check
 
-- Actual changed file count relative to `main`: 9.
+- Actual changed file count: 8.
 - Large files added: no.
-- Reference bundle changed: no.
+- Reference bundle changed: no raw bundle files committed.
 - Third-party materials or binaries changed: no.
-- `references/` changed: yes, focused Markdown references only.
+- `docs/reference-summaries/` changed: yes, curated Markdown only.
 - `scripts/remote-workflow/` changed: no.
 - Local workflow mirror changed: no.
 - Server execution source changed: no.
@@ -51,25 +72,28 @@
 - Did not delete, overwrite, or modify remote server files.
 - Did not modify real calculation tasks.
 - Did not sync changes into the formal installed skill directory.
-- Did not commit raw `vasp_references资料/` bundles, PDFs, images, source trees, generated cache JSON, or binaries.
 
 ## Checks Run
 
 - `git status --short --branch`
-- `C:\Program Files\GitHub CLI\gh.exe issue list --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --state open --limit 20`
-- `C:\Program Files\GitHub CLI\gh.exe pr list --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --state open --limit 20`
-- `C:\Program Files\GitHub CLI\gh.exe issue view 5 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,labels,url`
-- `C:\Program Files\GitHub CLI\gh.exe issue view 3 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,labels,url`
-- `C:\Program Files\GitHub CLI\gh.exe pr view 4 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,body,comments,reviews,url`
-- `C:\Program Files\GitHub CLI\gh.exe pr view 4 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json reviews,comments,reviewDecision,url,title`
-- `rg --files references docs`
-- `rg -n "^## " references/monolayer-audit.md`
-- `git diff --stat`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 4 ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr merge 4 --squash --delete-branch`
+- `git checkout main`
+- `git pull --ff-only origin main`
+- `git checkout -b task_003_curate-vasp-references`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 6 --comments`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 6 --json number,title,body,comments,labels,url,state`
+- `Get-ChildItem -LiteralPath vasp_references资料 ...`
+- `rg` and `Select-String` searches over VASPKIT/JAMIP local materials.
 - `git diff --check`
-- `git diff --name-only -- scripts/remote-workflow`
-- `C:\Program Files\GitHub CLI\gh.exe pr edit 4 ...`
+- `git commit -m "task_003: curate vasp references"`
+- `git push -u origin task_003_curate-vasp-references`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 7 --json reviews,comments,body,files`
+- `git fetch origin main`
+- `git merge --no-edit origin/main`
 
 ## Remaining Notes
 
-- ChatGPT review said the PR is close to mergeable after fixing Issue #5 traceability.
-- The requested traceability fix has been applied in the PR body.
+- ChatGPT's requested optional future review target section has been added.
+- This follow-up push should refresh PR #7 mergeability on GitHub; if GitHub still reports not mergeable, re-check branch protection or conflict details from the PR UI.
