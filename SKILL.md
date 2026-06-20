@@ -58,7 +58,7 @@ Phase 3: present a review checklist.
 
 - Separate required tasks from optional high-cost tasks.
 - Call out nonstandard choices such as `IVDW`, HSE split, SOC executable, NBANDS for optics, phonon stage, AIMD settings, and mobility assumptions.
-- After the user confirms server dry-run access, run `python workflow.py submit <project_name> --dry-run` before real submission and include its result in the review.
+- After the user confirms server dry-run access, Codex or another authorized operator may run `python workflow.py submit <project_name> --dry-run` before real submission. ChatGPT reviews the returned dry-run result; it does not perform server-side actions.
 - Ask for confirmation before any `sbatch`.
 
 Phase 4: submit and monitor only after confirmation.

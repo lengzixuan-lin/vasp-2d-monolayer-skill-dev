@@ -13,11 +13,13 @@
 - Read Issue #10 and confirmed the task is a framework audit before module-by-module workflow review.
 - Created branch `task_005_audit-skill-framework`.
 - Reviewed the skill entrypoint, agent metadata, framework references, collaboration workflow, and templates.
+- Read ChatGPT's PR #11 review and found one requested wording fix.
 - Kept the work documentation-only and framework-only.
 
 ## Implemented Changes
 
 - Rewrote `SKILL.md` as a compact control-plane entrypoint with clearer trigger scope, safety gates, progressive-loading links, monolayer workflow phases, collaboration rules, and local mirror status.
+- Rephrased the server dry-run wording so Codex or another authorized operator performs confirmed server-side validation, while ChatGPT reviews returned results.
 - Updated `agents/openai.yaml` to narrow trigger language and include server dry-runs and real task edits in the explicit-confirmation boundary.
 - Added `docs/improvement-plans/2026-06-20_task_005_framework-audit.md`.
 - Updated `docs/improvement-plans/2026-06-20_task_004_improvement-plan.md` so the suggested follow-up sequence matches Issue #10: task_005 is framework audit, VASPKIT optical verification moves to task_006.
@@ -53,6 +55,8 @@
 - `git checkout main`
 - `git pull --ff-only origin main`
 - `C:\Program Files\GitHub CLI\gh.exe issue view 10 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 11 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/11/comments`
 - `git checkout -b task_005_audit-skill-framework`
 - `git diff --check`
 - `git diff --cached`
@@ -62,5 +66,5 @@
 
 ## Remaining Notes
 
-- ChatGPT should review whether the rewritten `SKILL.md` preserves all necessary safety boundaries while staying compact.
+- ChatGPT's requested dry-run wording fix has been applied and needs re-review.
 - The next implementation sequence should start with task_006 for VASPKIT optical task-number verification only after explicit server-inspection approval.

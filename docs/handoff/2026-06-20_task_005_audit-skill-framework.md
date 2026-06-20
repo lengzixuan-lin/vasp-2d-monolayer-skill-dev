@@ -12,6 +12,7 @@
 - Read Issue #10 and its framework-audit requirements.
 - Reviewed `SKILL.md`, `agents/openai.yaml`, framework references, collaboration docs, and templates.
 - Rewrote `SKILL.md` as a compact control-plane entrypoint with clearer trigger scope, safety gates, progressive-loading links, and collaboration rules.
+- Applied ChatGPT's requested PR #11 wording fix so server dry-runs are performed only by Codex or another authorized operator after explicit confirmation, while ChatGPT reviews returned results.
 - Updated `agents/openai.yaml` to narrow trigger wording and include server dry-runs and real task edits in the confirmation boundary.
 - Added a framework audit document at `docs/improvement-plans/2026-06-20_task_005_framework-audit.md`.
 - Updated the task_004 plan's suggested follow-up numbering so task_005 is the framework audit and VASPKIT verification moves to task_006.
@@ -55,6 +56,8 @@
 - `git checkout main`
 - `git pull --ff-only origin main`
 - `gh issue view 10 --comments --json ...`
+- `gh pr view 11 --comments --json ...`
+- `gh api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/11/comments`
 - `git checkout -b task_005_audit-skill-framework`
 - `git diff --check`
 - `git diff --cached`
@@ -81,7 +84,5 @@
 
 ## Suggested Next ChatGPT Review Focus
 
-- Check whether `SKILL.md` is now appropriately compact and not too broad.
-- Check whether the progressive-loading links are sufficient.
-- Check whether the safety gates cover server dry-runs, installed-skill sync, and real calculation edits.
+- Confirm the requested dry-run wording fix correctly separates Codex/operator execution from ChatGPT review.
 - Confirm no out-of-scope workflow implementation files were changed.
