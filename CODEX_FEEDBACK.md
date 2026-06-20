@@ -2,38 +2,32 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/8
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/9
-- Branch: `task_004_improvement-plan`
-- Task ID: `task_004_improvement-plan`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/10
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/11
+- Branch: `task_005_audit-skill-framework`
+- Task ID: `task_005_audit-skill-framework`
 
 ## This Round Summary
 
 - Synced local `main` with `origin/main`.
-- Confirmed GitHub CLI authentication through the installed GitHub CLI path.
-- Created branch `task_004_improvement-plan`.
-- Created GitHub Issue #8.
-- Converted the `task_003` reference-summary follow-up targets into a concrete improvement plan.
-- Kept the work documentation-only and planning-only.
+- Read Issue #10 and confirmed the task is a framework audit before module-by-module workflow review.
+- Created branch `task_005_audit-skill-framework`.
+- Reviewed the skill entrypoint, agent metadata, framework references, collaboration workflow, and templates.
+- Read ChatGPT's PR #11 review and found one requested wording fix.
+- Kept the work documentation-only and framework-only.
 
 ## Implemented Changes
 
-- Added `docs/improvement-plans/2026-06-20_task_004_improvement-plan.md`.
-- Added `docs/handoff/2026-06-20_task_004_improvement-plan.md`.
-- Updated `docs/reference-summaries/README.md` to link the task_004 plan.
-- Replaced `CODEX_FEEDBACK.md` with this task_004 feedback summary.
-
-## Priority Review Areas Captured
-
-- VASPKIT optical task numbering 710/711 server-version verification.
-- `module_provenance.yaml` schema expectations.
-- finite-displacement phonon subtask manifest expectations.
-- scheduler config / submit template configurability expectations.
-- result-summary method/source label expectations.
+- Rewrote `SKILL.md` as a compact control-plane entrypoint with clearer trigger scope, safety gates, progressive-loading links, monolayer workflow phases, collaboration rules, and local mirror status.
+- Rephrased the server dry-run wording so Codex or another authorized operator performs confirmed server-side validation, while ChatGPT reviews returned results.
+- Updated `agents/openai.yaml` to narrow trigger language and include server dry-runs and real task edits in the explicit-confirmation boundary.
+- Added `docs/improvement-plans/2026-06-20_task_005_framework-audit.md`.
+- Updated `docs/improvement-plans/2026-06-20_task_004_improvement-plan.md` so the suggested follow-up sequence matches Issue #10: task_005 is framework audit, VASPKIT optical verification moves to task_006.
+- Added `docs/handoff/2026-06-20_task_005_audit-skill-framework.md`.
 
 ## Diff Reality Check
 
-- Actual changed file count: 4.
+- Actual changed file count: 6.
 - Large files added: no.
 - Reference bundle changed: no.
 - Third-party materials or binaries changed: no.
@@ -57,17 +51,20 @@
 ## Checks Run
 
 - `git status --short --branch`
-- `C:\Program Files\GitHub CLI\gh.exe auth status --hostname github.com`
+- `git fetch origin main`
 - `git checkout main`
 - `git pull --ff-only origin main`
-- `git checkout -b task_004_improvement-plan`
-- `C:\Program Files\GitHub CLI\gh.exe issue create ...`
+- `C:\Program Files\GitHub CLI\gh.exe issue view 10 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe pr view 11 --comments --json ...`
+- `C:\Program Files\GitHub CLI\gh.exe api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/11/comments`
+- `git checkout -b task_005_audit-skill-framework`
 - `git diff --check`
 - `git diff --cached`
-- `git commit -m "task_004: add improvement plan"`
-- `git push -u origin task_004_improvement-plan`
+- `git commit -m "task_005: audit skill framework"`
+- `git push -u origin task_005_audit-skill-framework`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
-- Task_004 intentionally stops at concrete planning. The likely next step is to split the plan into implementation/review issues for VASPKIT optical verification, provenance schema, phonon manifest, scheduler config, and result-summary labels.
+- ChatGPT's requested dry-run wording fix has been applied and needs re-review.
+- The next implementation sequence should start with task_006 for VASPKIT optical task-number verification only after explicit server-inspection approval.

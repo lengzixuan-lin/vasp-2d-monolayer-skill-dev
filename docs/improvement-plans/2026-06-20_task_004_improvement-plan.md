@@ -149,11 +149,12 @@ Acceptance criteria:
 
 ## Suggested Follow-Up Issue Split
 
-- `task_005`: Verify VASPKIT optical task numbering and document server-version evidence after explicit server-inspection approval.
-- `task_006`: Draft `module_provenance.yaml` schema and example records.
-- `task_007`: Draft finite-displacement phonon subtask manifest schema and review checks.
-- `task_008`: Review scheduler config and submit-template fields for configurability.
-- `task_009`: Draft result-summary label schema and examples.
+- `task_005`: Audit the skill framework before module-by-module workflow review.
+- `task_006`: Verify VASPKIT optical task numbering and document server-version evidence after explicit server-inspection approval.
+- `task_007`: Draft `module_provenance.yaml` schema and example records.
+- `task_008`: Draft finite-displacement phonon subtask manifest schema and review checks.
+- `task_009`: Review scheduler config and submit-template fields for configurability.
+- `task_010`: Draft result-summary label schema and examples.
 
 ## Out of Scope for Task 004
 

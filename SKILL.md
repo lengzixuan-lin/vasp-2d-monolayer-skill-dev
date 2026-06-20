@@ -1,40 +1,37 @@
 ---
 name: vasp-2d-monolayer
-description: 审查、规划、准备并在用户确认后执行单层二维材料 VASP 工作流。用于单层 2D POSCAR 审查，结构优化、SCF、能带、DOS/PDOS、HSE/SOC、功函数、光吸收、声子、AIMD、有效质量、迁移率等 monolayer 任务规划，也用于维护本 skill 的规则、reference 文档、本地 workflow mirror 和 ChatGPT/Codex 协作边界。遇到异质结、吸附、HER/OER、界面、电荷差分、ssh、sbatch、远程写入或真实计算任务修改时，必须先确认范围和权限。
+description: Review, plan, prepare, and, only after explicit confirmation, run VASP workflows for single-layer 2D monolayer materials. Use for monolayer POSCAR audits, monolayer VASP workflow planning, and maintenance of this skill's rules, references, local workflow mirror, and ChatGPT/Codex handoff process. For heterojunctions, adsorption/catalysis, defects, molecules, bulk, slabs, SSH, Slurm submission, remote writes, real calculation edits, or installed-skill sync, require explicit scope and permission confirmation first.
 ---
 
-# VASP 单层二维材料计算
+# VASP 2D Monolayer Workflow
 
-Use this skill when the user provides a monolayer 2D material POSCAR, asks for a monolayer VASP workflow on `lilin`, or asks to review/improve this skill's rules, references, local workflow mirror, or handoff notes.
+Use this skill when the user provides a single-layer 2D material POSCAR, asks for a monolayer VASP workflow on `lilin`, or asks to review/improve this skill's rules, references, local workflow mirror, or handoff notes.
 
-This skill is only for single-layer 2D materials unless the user explicitly confirms a different scope. For heterojunctions, adsorption, HER/OER, interface binding energy, charge-density difference, built-in electric fields, defects, molecules, bulk, or surface slabs, stop and ask for scope confirmation or switch to a more appropriate workflow.
+This skill is not the default workflow for heterojunctions, adsorption, HER/OER, interface binding energy, charge-density difference, built-in electric fields, defects, molecules, bulk structures, or surface slabs. If scope is ambiguous, stop and ask for confirmation before planning or preparing jobs.
 
 ## Required Reading
 
-Read only the files needed for the task:
+Read only the files needed for the task.
 
-- Always read `references/monolayer-audit.md` before planning, preparing, submitting, or collecting monolayer calculations.
+- Read `references/monolayer-audit.md` before planning, preparing, submitting, or collecting monolayer calculations.
 - Read `references/workflow-modules.md` when selecting modules, checking dependencies, reviewing generated inputs, or extracting results.
 - Read `references/server-boundary.md` before any GitHub handoff, installed-skill sync, server verification, remote sync, `ssh`, `sbatch`, or real calculation action.
-- For implementation review, inspect the local mirror files first:
-  - `scripts/remote-workflow/SYNC_MANIFEST.md`
-  - `scripts/remote-workflow/config/settings.yaml`
-  - `scripts/remote-workflow/config/precision_standard.yaml`
+- Read `docs/reference-summaries/README.md` when reviewing VASPKIT/JAMIP-derived design lessons.
+- Read `docs/improvement-plans/` when continuing planned framework, schema, scheduler, provenance, or result-label review tasks.
+
+For implementation review, inspect local mirror files first:
+
+- `scripts/remote-workflow/SYNC_MANIFEST.md`
+- `scripts/remote-workflow/config/settings.yaml`
+- `scripts/remote-workflow/config/precision_standard.yaml`
 
 ## Safety Gates
 
-- Never run `ssh lilin`, `sbatch`, remote deletion, remote overwrite, remote file synchronization, or real calculation-task modification unless the user explicitly confirms that exact action in the current conversation.
-- Treat local repository edits as proposed changes only. They do not change the installed skill, the `lilin` workflow, or any real calculation unless the user separately requests synchronization.
+- Never run `ssh lilin`, `sbatch`, server dry-runs, remote deletion, remote overwrite, remote file synchronization, installed-skill sync, or real calculation-task modification unless the user explicitly confirms that exact action in the current conversation.
+- Treat repository edits as proposed local changes only. They do not change the installed skill, the `lilin` workflow, or any real calculation unless the user separately requests synchronization.
 - Do not print GitHub tokens, SSH keys, license files, private credentials, or machine-local secrets.
 - Before any real submission, show the calculation list, input-generation assumptions, high-cost modules, dependency chain, dry-run result, and known risks. Submit only after explicit user confirmation.
-- Before Codex reads PR/Issue comments or pushes with GitHub CLI, confirm `gh` is authenticated. In PowerShell:
-
-```powershell
-gh auth status --hostname github.com
-gh auth login --hostname github.com --web --git-protocol https
-```
-
-If `gh` is installed but not on PATH on Windows, try `C:\Program Files\GitHub CLI\gh.exe`.
+- Before Codex reads PR/Issue comments or pushes with GitHub CLI, confirm `gh` is authenticated. If `gh` is not on PATH on Windows, use `C:\Program Files\GitHub CLI\gh.exe`.
 
 ## Monolayer Workflow
 
@@ -61,7 +58,7 @@ Phase 3: present a review checklist.
 
 - Separate required tasks from optional high-cost tasks.
 - Call out nonstandard choices such as `IVDW`, HSE split, SOC executable, NBANDS for optics, phonon stage, AIMD settings, and mobility assumptions.
-- After the user confirms server dry-run access, run `python workflow.py submit <project_name> --dry-run` before real submission and include its result in the review.
+- After the user confirms server dry-run access, Codex or another authorized operator may run `python workflow.py submit <project_name> --dry-run` before real submission. ChatGPT reviews the returned dry-run result; it does not perform server-side actions.
 - Ask for confirmation before any `sbatch`.
 
 Phase 4: submit and monitor only after confirmation.
@@ -73,7 +70,7 @@ Phase 4: submit and monitor only after confirmation.
 Phase 5: collect results.
 
 - Extract structural parameters, total energies, band gap, CBM/VBM, Fermi level, vacuum level, work function, DOS/PDOS, optical absorption, phonon stability, AIMD stability, effective masses, and mobility outputs as applicable.
-- Mark every value as PBE, HSE, SOC, or post-processed. Do not mix methods silently.
+- Mark every value as PBE, HSE, SOC, raw VASP, VASPKIT-converted, or other post-processed output. Do not mix methods silently.
 
 ## Collaboration Rules
 
