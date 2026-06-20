@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/6
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/7
 - ChatGPT review source: Issue #6 body
 
 ## Codex Completed
@@ -61,6 +61,10 @@
 - `Get-ChildItem -LiteralPath vasp_references资料 -Force -Recurse -File | Group-Object Extension`
 - `rg` search over `vaspkit_readme.md`
 - `Select-String` and `Get-Content` over selected JAMIP manual/source files.
+- `git diff --check`
+- `git commit -m "task_003: curate vasp references"`
+- `git push -u origin task_003_curate-vasp-references`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## External Actions
 
@@ -70,6 +74,7 @@
 - Remote writes/deletes: no
 - GitHub Issue read: yes, Issue #6
 - GitHub PR #4 merged before this branch: yes
+- GitHub PR #7 created: yes
 
 ## Sync Truth
 

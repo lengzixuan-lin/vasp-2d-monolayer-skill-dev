@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/6
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/7
 - Branch: `task_003_curate-vasp-references`
 - Task ID: `task_003_curate-vasp-references`
 
@@ -80,6 +80,10 @@
 - `C:\Program Files\GitHub CLI\gh.exe issue view 6 --json number,title,body,comments,labels,url,state`
 - `Get-ChildItem -LiteralPath vasp_references资料 ...`
 - `rg` and `Select-String` searches over VASPKIT/JAMIP local materials.
+- `git diff --check`
+- `git commit -m "task_003: curate vasp references"`
+- `git push -u origin task_003_curate-vasp-references`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
