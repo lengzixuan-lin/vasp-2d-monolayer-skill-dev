@@ -4,6 +4,7 @@
 
 - Server inspection performed: yes.
 - User confirmation: explicit current-conversation authorization for task_006 read-only server inspection.
+- Authorization source: the user message immediately starting this task said, `执行 Issue #12 / task_006。授权本轮仅进行服务器只读检查，用于确认 VASPKIT 版本和 optical task 编号。禁止 sbatch、禁止 VASP 运行、禁止 server dry-run、禁止远程写入/删除/同步、禁止真实计算任务修改、禁止修改 scripts/remote-workflow/** 实现文件。完成后开 PR 给 ChatGPT 审查。`
 - Server account inspected: `lilin`.
 - Hostname reported by server: `node`.
 - Working directory for checks: `/home/lilin`.
@@ -78,6 +79,10 @@ Future workflow code and docs should refer to:
 
 - `vaspkit -task 710` for VASPKIT-converted 2D optical spectra after VASP `LOPTICS` output is available.
 - `vaspkit -task 711` only for bulk semiconductor optical spectra, not for monolayer results.
+
+Future integration target:
+
+- A later reviewed task should link this verification note from `references/workflow-modules.md` or the optical workflow docs before changing any optical workflow implementation.
 
 Optical result summaries should label:
 

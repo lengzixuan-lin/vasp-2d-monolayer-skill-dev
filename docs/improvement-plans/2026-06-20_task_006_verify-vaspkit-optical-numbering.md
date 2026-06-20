@@ -33,6 +33,7 @@ Expected 2D output files include:
 ## Safety Boundary
 
 - Server inspection performed: yes, after explicit user authorization in the current conversation.
+- Authorization source: the task-starting user message explicitly authorized read-only server inspection for VASPKIT version and optical task numbering, while forbidding `sbatch`, VASP runs, server dry-runs, remote writes/deletes/sync, real calculation edits, and `scripts/remote-workflow/**` implementation edits.
 - Server commands were inspection-only.
 - No `sbatch`.
 - No VASP run.
@@ -49,3 +50,4 @@ Future optical workflow review should:
 - use `vaspkit -task 710` as the verified VASPKIT conversion step for 2D optical spectra;
 - label `711` as a bulk-only path and reject it for monolayer optical absorption summaries;
 - record `POSCAR`, `vasprun.xml` or `REAL.in`/`IMAG.in`, `LOPTICS`, `NBANDS`, and generated `*_2D.dat` files in result provenance.
+- add a later reviewed integration link from `references/workflow-modules.md` or optical workflow docs to `references/vaspkit-optical-verification.md`; this PR intentionally does not change workflow implementation.

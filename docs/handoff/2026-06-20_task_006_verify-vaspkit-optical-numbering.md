@@ -12,6 +12,7 @@
 - Created branch `task_006_verify-vaspkit-optical-numbering`.
 - Read Issue #12, `SKILL.md`, `references/server-boundary.md`, and the task_004 improvement plan.
 - Used the user's current-message authorization to perform read-only server inspection on `lilin`.
+- Recorded the exact authorization source in `references/vaspkit-optical-verification.md`.
 - Verified installed VASPKIT path and version.
 - Verified optical task numbering:
   - `710`: 2D optical spectra.
@@ -48,6 +49,7 @@
 - Allowed files: verification note, improvement-plan summary, handoff, `CODEX_FEEDBACK.md`
 - Out of scope: workflow implementation files, raw reference bundle, server writes, scheduler jobs, VASP runs, server dry-runs, real calculation tasks, installed-skill sync
 - User-approved exceptions: read-only `ssh lilin` inspection for VASPKIT version and optical task numbering
+- Authorization source: task-starting user message explicitly authorized read-only server inspection for VASPKIT version and optical task numbering and explicitly forbade `sbatch`, VASP runs, server dry-runs, remote writes/deletes/sync, real calculation edits, and `scripts/remote-workflow/**` implementation edits.
 
 ## Checks Run
 
@@ -88,4 +90,5 @@
 
 - Confirm the user authorization was sufficient for read-only server inspection.
 - Confirm the 710/711 ambiguity is resolved clearly enough for future optical workflow review.
+- Confirm the future integration target is clear: link this verification note from workflow docs in a later reviewed task, without changing implementation in this PR.
 - Confirm no write, scheduler, VASP, dry-run, implementation, or real-calculation changes were made.
