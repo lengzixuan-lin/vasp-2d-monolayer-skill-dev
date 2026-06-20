@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/12
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/13
 - Branch: `task_006_verify-vaspkit-optical-numbering`
 - Task ID: `task_006_verify-vaspkit-optical-numbering`
 
@@ -63,6 +63,11 @@
 - `git checkout -b task_006_verify-vaspkit-optical-numbering`
 - `C:\Program Files\GitHub CLI\gh.exe issue view 12 --comments --json ...`
 - Read-only `ssh lilin` inspection commands listed in `references/vaspkit-optical-verification.md`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_006: verify vaspkit optical numbering"`
+- `git push -u origin task_006_verify-vaspkit-optical-numbering`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 

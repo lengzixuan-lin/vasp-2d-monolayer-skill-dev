@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/12
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/13
 - ChatGPT review file: pending
 
 ## Codex Completed
@@ -58,6 +58,11 @@
 - `git checkout -b task_006_verify-vaspkit-optical-numbering`
 - `gh issue view 12 --comments --json ...`
 - Read-only `ssh lilin` inspection commands listed in `references/vaspkit-optical-verification.md`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_006: verify vaspkit optical numbering"`
+- `git push -u origin task_006_verify-vaspkit-optical-numbering`
+- `gh pr create ...`
 
 ## External Actions
 
