@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/8
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/9
 - ChatGPT review file: pending
 
 ## Codex Completed
@@ -55,6 +55,11 @@
 - `git pull --ff-only origin main`
 - `git checkout -b task_004_improvement-plan`
 - `gh issue create ...`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_004: add improvement plan"`
+- `git push -u origin task_004_improvement-plan`
+- `gh pr create ...`
 
 ## External Actions
 

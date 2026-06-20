@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/8
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/9
 - Branch: `task_004_improvement-plan`
 - Task ID: `task_004_improvement-plan`
 
@@ -62,6 +62,11 @@
 - `git pull --ff-only origin main`
 - `git checkout -b task_004_improvement-plan`
 - `C:\Program Files\GitHub CLI\gh.exe issue create ...`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_004: add improvement plan"`
+- `git push -u origin task_004_improvement-plan`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
