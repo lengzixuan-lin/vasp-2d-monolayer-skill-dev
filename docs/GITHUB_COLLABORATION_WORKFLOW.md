@@ -11,21 +11,42 @@ This repository uses GitHub as the bridge between ChatGPT planning/review and Co
 
 ## Standard Loop
 
-1. Create a GitHub Issue for one task.
-2. Ask ChatGPT to write or update `CHATGPT_REVIEW.md` with the task plan and risks.
-3. Codex starts from the latest `main`.
-4. Codex creates a task branch named `task_000_short-name`.
-5. Codex implements only the approved local changes.
-6. Codex updates `CODEX_FEEDBACK.md`.
-7. Codex writes `docs/handoff/YYYY-MM-DD_task_000_short-name.md`.
-8. Codex records the actual changed-file count, large-file status, and scope exceptions.
-9. Codex checks `git status`.
-10. Codex stages only explicit files. Do not use `git add .`.
-11. Codex reviews `git diff --cached`.
-12. Codex commits and pushes the task branch.
-13. Codex opens a PR to `main`.
-14. ChatGPT reviews the PR diff and handoff file.
-15. User merges or requests changes.
+1. Confirm GitHub CLI access before reading PR/Issue comments, creating Issues, opening PRs, or pushing branches.
+2. Create a GitHub Issue for one task.
+3. Ask ChatGPT to write or update `CHATGPT_REVIEW.md` with the task plan and risks.
+4. Codex starts from the latest `main`.
+5. Codex creates a task branch named `task_000_short-name`.
+6. Codex implements only the approved local changes.
+7. Codex updates `CODEX_FEEDBACK.md`.
+8. Codex writes `docs/handoff/YYYY-MM-DD_task_000_short-name.md`.
+9. Codex records the actual changed-file count, large-file status, and scope exceptions.
+10. Codex checks `git status`.
+11. Codex stages only explicit files. Do not use `git add .`.
+12. Codex reviews `git diff --cached`.
+13. Codex commits and pushes the task branch.
+14. Codex opens a PR to `main`.
+15. ChatGPT reviews the PR diff and handoff file.
+16. User merges or requests changes.
+
+## GitHub CLI Preflight
+
+In PowerShell, check authentication with:
+
+```powershell
+gh auth status --hostname github.com
+```
+
+If not logged in, run:
+
+```powershell
+gh auth login --hostname github.com --web --git-protocol https
+```
+
+If `gh` is installed but not on PATH on Windows, try the full executable path:
+
+```powershell
+& 'C:\Program Files\GitHub CLI\gh.exe' auth status --hostname github.com
+```
 
 ## Command Pattern
 
