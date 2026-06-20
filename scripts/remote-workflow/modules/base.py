@@ -14,6 +14,7 @@ import subprocess
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+from provenance_utils import path_record
 try:
     from jinja2 import Environment, FileSystemLoader
     _HAS_JINJA2 = True
@@ -927,6 +928,149 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
                 os.path.join(os.path.dirname(std_exe), "vasp_gam"))
         return std_exe
 
+    def normalized_module_label(self):
+        """Return the public module label without renaming local dirs."""
+        label_map = {
+            "01_opt": "01_opt",
+            "02_scf": "02_scf",
+            "03_pbeband": "03_band",
+            "04_dos": "04_dos",
+        }
+        return label_map.get(self.module_dir, self.module_dir)
+
+    def method_label(self):
+        labels = {
+            "opt": "pbe_geometry_optimization",
+            "scf": "pbe_scf",
+            "band": "pbe_band_structure",
+            "dos": "pbe_dos",
+        }
+        return labels.get(self.name, self.name)
+
+    def calculation_purpose(self):
+        purposes = {
+            "opt": "Relax 2D structure while keeping the vacuum axis fixed.",
+            "scf": "Generate a converged PBE charge density for child modules.",
+            "band": "Compute the PBE band structure from the SCF charge density.",
+            "dos": "Compute PBE density of states from the SCF charge density.",
+        }
+        return purposes.get(self.name, f"Run {self.name} calculation module.")
+
+    def dependency_intent(self, copy_inputs_from=None):
+        dependencies = []
+        if copy_inputs_from:
+            dependencies.append({
+                "source_dir": copy_inputs_from,
+                "status_at_prepare": (
+                    "available" if os.path.isdir(copy_inputs_from)
+                    else "missing_at_prepare"
+                ),
+            })
+        return {
+            "dependencies": dependencies,
+            "prepare_time_note": (
+                "Prepared-stage provenance records intended parent files. "
+                "Runtime pre-commands still verify required parent artifacts "
+                "before VASP starts."
+            ),
+        }
+
+    def generated_input_records(self):
+        base = self.project.project_dir
+        records = {}
+        for name, required in (
+                ("POSCAR", True),
+                ("INCAR", True),
+                ("KPOINTS", True),
+                ("POTCAR", True),
+                ("sub.vasp", self.name in ("opt", "scf", "band", "dos")),
+                ("kpoints_summary.yaml", False),
+                ("potcar_info.yaml", False),
+                ("OPTCELL", self.name == "opt")):
+            path = os.path.join(self.work_dir, name)
+            if required or os.path.exists(path):
+                records[name] = path_record(
+                    path, base_dir=base, role="generated_or_copied_input",
+                    required=required)
+        if records.get("INCAR"):
+            records["INCAR"]["template"] = self.incar_template
+        if records.get("KPOINTS"):
+            records["KPOINTS"]["source"] = self.inheritance_policy().get(
+                "KPOINTS", {}).get("mode", "prepared")
+        if records.get("POTCAR"):
+            records["POTCAR"]["source"] = (
+                "reused_from_01_opt" if self.name != "opt"
+                else "vaspkit_102_or_existing"
+            )
+        return records
+
+    def parent_file_records(self, copy_inputs_from=None):
+        policy = self.inheritance_policy(copy_inputs_from)
+        base = self.project.project_dir
+        parent = {
+            "policy": policy,
+            "files": {},
+        }
+        poscar_source = policy.get("poscar", {}).get("source")
+        if poscar_source:
+            parent["files"]["source_structure"] = path_record(
+                os.path.join(self.project.project_dir, poscar_source),
+                base_dir=base, role="source_structure",
+                required=policy["poscar"].get("required_at_runtime", False))
+        for fname in ("CHGCAR", "WAVECAR"):
+            source = policy.get(fname, {}).get("source")
+            if source:
+                parent["files"][fname] = path_record(
+                    source, base_dir=base, role="runtime_parent_file",
+                    required=policy[fname].get("mode") == "required")
+        if self.name != "opt":
+            parent["files"]["POTCAR_parent"] = path_record(
+                self.optimization_potcar_path(), base_dir=base,
+                role="potcar_reuse_source", required=True)
+        return parent
+
+    def prepared_review_state(self, copy_inputs_from=None):
+        """Classify prepared provenance without claiming final results."""
+        missing_required = []
+        warnings = []
+        for name, rec in self.generated_input_records().items():
+            if rec.get("required") and not rec.get("exists"):
+                missing_required.append(name)
+        parent = self.parent_file_records(copy_inputs_from)
+        for name, rec in parent.get("files", {}).items():
+            if rec.get("required") and not rec.get("exists"):
+                warnings.append(f"{name} missing at prepare time")
+        state = "blocked" if missing_required else "pending_review"
+        return {
+            "state": state,
+            "missing_required_prepared_inputs": missing_required,
+            "warnings": warnings,
+            "final_result_status": "not_applicable_pre_submission",
+        }
+
+    def postprocessing_intent(self):
+        if self.name == "band":
+            return {
+                "tool": "vaspkit",
+                "task": 211,
+                "source_files": ["EIGENVAL", "KPOINTS", "OUTCAR"],
+                "output_files": ["BAND_GAP"],
+                "status": "intended_runtime_postprocess",
+            }
+        if self.name == "dos":
+            return {
+                "tool": "vasp",
+                "source_files": ["DOSCAR", "vasprun.xml", "OUTCAR"],
+                "output_files": ["DOSCAR"],
+                "status": "dos_parser_pending",
+            }
+        return {
+            "tool": None,
+            "source_files": [],
+            "output_files": [],
+            "status": "none",
+        }
+
     def inheritance_policy(self, copy_inputs_from=None):
         """Describe runtime file inheritance from the parent calculation."""
         chg_required = {
@@ -1005,13 +1149,46 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
 
     def write_module_provenance(self, copy_inputs_from=None):
         """Write reviewable provenance for this prepared module."""
+        vaspkit_cfg = self.settings.get("vaspkit", {})
+        slurm_cfg = self.settings.get("slurm", {})
         data = {
+            "schema_version": "2026-06-20.batch_a.v1",
             "project": self.project.name,
             "module": self.name,
             "module_dir": self.module_dir,
             "prepared_at": datetime.now().isoformat(),
             "work_dir": self.work_dir,
+            "module_identity": {
+                "name": self.name,
+                "actual_module_dir": self.module_dir,
+                "normalized_module_label": self.normalized_module_label(),
+                "method_label": self.method_label(),
+                "calculation_purpose": self.calculation_purpose(),
+                "batch_a_baseline": self.name in ("opt", "scf", "band", "dos"),
+            },
             "inheritance": self.inheritance_policy(copy_inputs_from),
+            "parent_files": self.parent_file_records(copy_inputs_from),
+            "generated_inputs": self.generated_input_records(),
+            "executable_environment": {
+                "vasp_executable": self.get_vasp_executable(),
+                "vaspkit_executable": vaspkit_cfg.get("executable"),
+                "vaspkit_version": vaspkit_cfg.get("version"),
+                "slurm_partition": slurm_cfg.get("partition"),
+                "slurm_ntasks": slurm_cfg.get("ntasks"),
+                "submit_template": slurm_cfg.get("submit_template"),
+            },
+            "dependency_status": self.dependency_intent(copy_inputs_from),
+            "restart_overwrite": {
+                "prepared_inputs_may_overwrite": [
+                    "INCAR", "KPOINTS", "POTCAR", "sub.vasp",
+                    "kpoints_summary.yaml", "module_provenance.yaml",
+                ],
+                "restart_intent": "fresh_prepare_no_job_restart",
+                "runtime_wavecar_policy": self.inheritance_policy(
+                    copy_inputs_from).get("WAVECAR", {}),
+            },
+            "post_processing": self.postprocessing_intent(),
+            "review_state": self.prepared_review_state(copy_inputs_from),
             "vasp_executable": self.get_vasp_executable(),
             "incar_template": self.incar_template,
         }
@@ -1077,7 +1254,6 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
         with open(os.path.join(self.work_dir, "INCAR"), 'w') as f:
             f.write(incar_content)
         inheritance = self.inheritance_policy(copy_inputs_from)
-        self.write_module_provenance(copy_inputs_from)
 
         # Build pre-VASP commands: use optimized structure and dependency data.
         pre_cmds = ""
@@ -1197,6 +1373,8 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
             optcell_content = self.render_optcell(fix_c_axis=True)
             with open(os.path.join(self.work_dir, "OPTCELL"), 'w') as f:
                 f.write(optcell_content)
+
+        self.write_module_provenance(copy_inputs_from)
 
     def setup_effective_mass_dir(self, copy_inputs_from=None):
         """Prepare the 2D effective-mass manager directory."""
