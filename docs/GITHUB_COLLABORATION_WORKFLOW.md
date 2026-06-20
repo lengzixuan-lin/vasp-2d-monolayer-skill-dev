@@ -18,13 +18,14 @@ This repository uses GitHub as the bridge between ChatGPT planning/review and Co
 5. Codex implements only the approved local changes.
 6. Codex updates `CODEX_FEEDBACK.md`.
 7. Codex writes `docs/handoff/YYYY-MM-DD_task_000_short-name.md`.
-8. Codex checks `git status`.
-9. Codex stages only explicit files. Do not use `git add .`.
-10. Codex reviews `git diff --cached`.
-11. Codex commits and pushes the task branch.
-12. Codex opens a PR to `main`.
-13. ChatGPT reviews the PR diff and handoff file.
-14. User merges or requests changes.
+8. Codex records the actual changed-file count, large-file status, and scope exceptions.
+9. Codex checks `git status`.
+10. Codex stages only explicit files. Do not use `git add .`.
+11. Codex reviews `git diff --cached`.
+12. Codex commits and pushes the task branch.
+13. Codex opens a PR to `main`.
+14. ChatGPT reviews the PR diff and handoff file.
+15. User merges or requests changes.
 
 ## Command Pattern
 
@@ -50,7 +51,20 @@ Create the PR after push, then give ChatGPT the PR link for review.
 - Do not commit tokens, SSH keys, `.env` files, credentials, or machine-local configuration.
 - Do not commit VASP runtime outputs such as `OUTCAR`, `WAVECAR`, `CHGCAR`, `vasprun.xml`, or Slurm logs.
 - Do not commit large local reference bundles unless the user explicitly approves.
+- If a PR contains a reference bundle, PDF, image set, third-party source tree, or binary, list the reason, file count, size summary, and user approval in the PR and handoff.
+- Keep local workflow mirror changes separate from claims about the server execution source. A local mirror edit does not change `lilin`.
 - Do not run `ssh lilin`, `sbatch`, remote deletion, or remote write operations without explicit user approval.
+
+## Diff Reality Check
+
+Every PR should state:
+
+- The actual changed-file count.
+- Whether large files, binaries, PDFs, images, or third-party materials were added.
+- Whether `vasp_references资料/` changed.
+- Whether `scripts/remote-workflow/` changed.
+- Whether the formal skill directory changed.
+- Whether the server execution source changed. This should normally be `no`.
 
 ## Persistent Files
 
@@ -59,4 +73,3 @@ Create the PR after push, then give ChatGPT the PR link for review.
 - `docs/handoff/`: per-task execution handoff records.
 - `.github/ISSUE_TEMPLATE/task.md`: GitHub Issue template.
 - `.github/PULL_REQUEST_TEMPLATE.md`: GitHub PR template.
-

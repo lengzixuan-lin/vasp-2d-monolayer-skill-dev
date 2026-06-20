@@ -37,4 +37,24 @@ slurm-*.out
 *.err
 *.out
 
-# The VASP reference bundle is intentionally tracked after user approval.
+# Reference bundles and third-party materials
+#
+# Existing tracked files are not affected by .gitignore. New full reference
+# bundles, generated parser caches, PDFs, images, binaries, and vendored tools
+# require explicit user confirmation before staging.
+vasp_references资料/**
+!vasp_references资料/
+!vasp_references资料/**/*.md
+!vasp_references资料/**/*.txt
+!vasp_references资料/**/*.yaml
+!vasp_references资料/**/*.yml
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.tif
+*.tiff
+*.bin
+*.exe
+*.dll

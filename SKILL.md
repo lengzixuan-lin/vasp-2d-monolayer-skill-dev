@@ -15,7 +15,17 @@ Before planning, preparing, or submitting calculations, read:
 
 - `references/monolayer-audit.md`
 
-If auditing the implementation, also inspect the remote workflow:
+For implementation review, inspect the local mirror first:
+
+- `scripts/remote-workflow/SYNC_MANIFEST.md`
+- `scripts/remote-workflow/config/settings.yaml`
+- `scripts/remote-workflow/config/precision_standard.yaml`
+
+## User-Confirmed Server Verification
+
+Do not treat server access as default required reading. If the user explicitly
+asks for server verification and confirms that read-only SSH access is allowed,
+then inspect the remote workflow with commands such as:
 
 ```bash
 ssh lilin 'find ~/calculation/1_dft/02_workflow -maxdepth 3 -type f | sort'
