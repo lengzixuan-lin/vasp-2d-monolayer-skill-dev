@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/18
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/19
 - ChatGPT review file: pending
 
 ## Codex Completed
@@ -58,6 +58,11 @@
 - `git pull --ff-only origin main`
 - `gh issue view 18 --comments --json ...`
 - `git checkout -b task_008_provenance-result-label-schema-foundation`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_008: add provenance and result label schema"`
+- `git push -u origin task_008_provenance-result-label-schema-foundation`
+- `gh pr create ...`
 
 ## External Actions
 

@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/18
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/19
 - Branch: `task_008_provenance-result-label-schema-foundation`
 - Task ID: `task_008_provenance-result-label-schema-foundation`
 
@@ -58,6 +58,11 @@
 - `git pull --ff-only origin main`
 - `C:\Program Files\GitHub CLI\gh.exe issue view 18 --comments --json ...`
 - `git checkout -b task_008_provenance-result-label-schema-foundation`
+- `git diff --check`
+- `git diff --cached`
+- `git commit -m "task_008: add provenance and result label schema"`
+- `git push -u origin task_008_provenance-result-label-schema-foundation`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
