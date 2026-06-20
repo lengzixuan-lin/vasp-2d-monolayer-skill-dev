@@ -3,7 +3,7 @@
 ## Task Source
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/3
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/4
 - ChatGPT review file: not used in this initial setup round
 
 ## Codex Completed
@@ -53,6 +53,9 @@
 - `C:\Program Files\GitHub CLI\gh.exe issue create ...`
 - `git diff --stat`
 - `git diff -- SKILL.md agents/openai.yaml docs/GITHUB_COLLABORATION_WORKFLOW.md CODEX_FEEDBACK.md docs/handoff/2026-06-20_task_002_review-skill-rules.md`
+- `git commit -m "task_002: review skill rules"`
+- `git push -u origin task_002_review-skill-rules`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## External Actions
 
@@ -60,6 +63,7 @@
 - `sbatch`: no
 - Remote writes/deletes: no
 - GitHub Issue created: yes, Issue #3
+- GitHub PR created: yes, PR #4
 
 ## Sync Truth
 

@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/3
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/4
 - Branch: `task_002_review-skill-rules`
 - Task ID: `task_002_review-skill-rules`
 
@@ -52,8 +52,10 @@
 - `C:\Program Files\GitHub CLI\gh.exe issue create ...`
 - `git diff --stat`
 - `git diff -- SKILL.md agents/openai.yaml docs/GITHUB_COLLABORATION_WORKFLOW.md CODEX_FEEDBACK.md docs/handoff/2026-06-20_task_002_review-skill-rules.md`
+- `git commit -m "task_002: review skill rules"`
+- `git push -u origin task_002_review-skill-rules`
+- `C:\Program Files\GitHub CLI\gh.exe pr create ...`
 
 ## Remaining Notes
 
-- After commit and push, update this file with the PR URL.
 - Ask ChatGPT to review whether the trigger description is specific enough without over-triggering on non-monolayer catalysis workflows.
