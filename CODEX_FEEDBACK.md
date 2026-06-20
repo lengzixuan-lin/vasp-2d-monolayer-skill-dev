@@ -2,64 +2,58 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/1
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/2
-- Branch: `task_001_review-github-bridge`
-- Task ID: `task_001_review-github-bridge`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/3
+- PR: pending
+- Branch: `task_002_review-skill-rules`
+- Task ID: `task_002_review-skill-rules`
 
 ## This Round Summary
 
-- Read ChatGPT's second and third PR reviews from PR #2.
-- Read ChatGPT's follow-up review confirming PR #2 is ready under the squash-merge / clean-history condition.
-- Removed the full local reference bundle directory from Git tracking with `git rm --cached`, preserving local files on disk.
-- Updated `.gitignore` so the reference bundle remains local by default and future additions require explicit force-add or relocation into curated docs.
-- Updated review, feedback, handoff, and reference-index docs to reflect that the user has confirmed the full bundle should not remain in this PR.
-- Updated the PR body so it matches the final 11-file diff and no longer reports stale changed-file information.
-- Recorded ChatGPT's third-review merge condition: use squash merge, or rewrite branch history before merge, so the earlier reference-bundle commit does not enter `main`.
-- Recorded the follow-up review result: no additional local implementation changes are required before merge, provided the merge uses squash merge or cleaned branch history.
-- Did not run `ssh lilin`, `sbatch`, or any remote compute/server write operation.
-- Did not modify real calculation tasks.
+- Started from the latest `main`.
+- Created GitHub Issue #3 for `task_002: review skill rules`.
+- Created local branch `task_002_review-skill-rules`.
+- Reviewed `SKILL.md`, `agents/openai.yaml`, `docs/GITHUB_COLLABORATION_WORKFLOW.md`, the handoff template, and prior `CODEX_FEEDBACK.md`.
+- Improved `SKILL.md` trigger conditions, operating boundaries, safety confirmation rules, and ChatGPT/Codex collaboration notes.
+- Added GitHub CLI authentication preflight guidance to the collaboration workflow.
+- Updated `agents/openai.yaml` so the default prompt matches the explicit SSH/Slurm/remote-write safety gates.
 
 ## Implemented Changes
 
-- The reference bundle directory is no longer tracked for this branch's final PR state.
-- `.gitignore` now scopes reference-bundle ignore behavior to the reference bundle directory instead of globally ignoring every PDF/image/binary in the repository.
-- `CHATGPT_REVIEW.md` records the second, third, and follow-up review URLs, the updated confirmation status, the clean-history merge condition, and the duplicate stale review note.
-- `docs/VASP_REFERENCES_INDEX.md` describes the bundle as local-only for this PR.
-- `CODEX_FEEDBACK.md` and the handoff file state that reference-bundle removal is confirmed and implemented, and that clean history is required before merge.
+- `SKILL.md` now states that the skill should also trigger for development tasks touching its rules, references, local mirror, agents, or handoff docs.
+- `SKILL.md` now separates trigger/scope rules from server safety boundaries.
+- `SKILL.md` now says local repository edits do not modify the installed skill, the `lilin` workflow, or real calculations unless separately requested.
+- `docs/GITHUB_COLLABORATION_WORKFLOW.md` now includes a GitHub CLI preflight section with the required PowerShell login command.
+- `agents/openai.yaml` now mentions local workflow review and the need for explicit confirmation before SSH, Slurm submission, remote writes, or installed-skill sync.
 
 ## Diff Reality Check
 
-- Tracked files under the reference bundle directory after `git rm --cached`: 0.
-- Final PR changed-file count relative to `main`: 11.
-- Full local bundle files were preserved on disk.
-- Final PR no longer adds third-party PDFs, images, generated JSON, source trees, config files, or binaries from the bundle.
-- Local workflow mirror changed: no in this follow-up.
+- Actual changed file count: 5.
+- Large files added: no.
+- Reference bundle changed: no.
+- Third-party materials or binaries changed: no.
+- Local workflow mirror changed: no.
 - Server execution source changed: no.
 
 ## Not Implemented
 
-- Did not delete the local reference bundle from disk.
-- Did not rewrite PR history in this round; because that would require a force-push style remote branch update, the safe merge path is squash merge unless the user explicitly asks Codex to rewrite the PR branch history.
-- Did not update the formal installed skill directory at `C:\Users\11658\.codex\skills\vasp-2d-monolayer`.
-- Did not sync anything to `lilin`.
+- Did not run `ssh lilin`.
+- Did not run `sbatch`.
+- Did not delete, overwrite, or modify remote server files.
+- Did not modify real calculation tasks.
+- Did not sync changes into the formal installed skill directory.
 
 ## Checks Run
 
-- `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
 - `git status --short --branch`
-- GitHub PR comments read through the Codex GitHub plugin.
-- `git rm -r --cached -- "vasp_references<Chinese-data-dir>"`
-- `git ls-files "vasp_references<Chinese-data-dir>/*"`
-- `git diff --stat origin/main...HEAD`
-- `C:\Program Files\GitHub CLI\gh.exe pr edit 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --body ...`
-- Latest PR review read with `C:\Program Files\GitHub CLI\gh.exe pr view 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json ...`
-- Local diffs reviewed before staging.
+- `C:\Program Files\GitHub CLI\gh.exe auth status --hostname github.com`
+- `git fetch origin main`
+- `git pull --ff-only origin main`
+- `git checkout -b task_002_review-skill-rules`
+- `C:\Program Files\GitHub CLI\gh.exe issue create ...`
+- `git diff --stat`
+- `git diff -- SKILL.md agents/openai.yaml docs/GITHUB_COLLABORATION_WORKFLOW.md CODEX_FEEDBACK.md docs/handoff/2026-06-20_task_002_review-skill-rules.md`
 
 ## Remaining Notes
 
-- The PR body was stale before this round and has been updated to match the new final diff.
-- ChatGPT's third review says the PR is functionally ready only under a clean-history condition: squash merge the final diff, or rewrite the branch before merge.
-- ChatGPT's follow-up review confirms the PR is mergeable under that same squash-merge / clean-history condition.
-- Do not use an ordinary merge or rebase merge that carries the earlier reference-bundle commit into `main`.
-- Curated reference summaries should usually be added under `docs/`; if a small file must remain under the reference bundle directory, use an explicit force-add only after user approval.
+- After commit and push, update this file with the PR URL.
+- Ask ChatGPT to review whether the trigger description is specific enough without over-triggering on non-monolayer catalysis workflows.

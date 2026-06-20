@@ -1,13 +1,21 @@
 ---
 name: vasp-2d-monolayer
-description: 审查、准备并执行单层二维材料的 VASP 计算流程。输入 POSCAR 后，用于生成和核查结构优化、SCF、能带、DOS/PDOS、HSE/SOC、功函数、光吸收、声子、AIMD、有效质量、迁移率等任务；适用于需要先列计算清单、确认后再在 lilin 服务器提交和监控 Slurm 任务的场景。
+description: 审查、准备并在用户确认后执行单层二维材料 VASP 计算流程。用于用户提供单层 2D POSCAR，或要求规划/核查结构优化、SCF、能带、DOS/PDOS、HSE/SOC、功函数、光吸收、声子、AIMD、有效质量、迁移率等 monolayer 工作流时；也用于审查本 skill 的 VASP 流程、安全边界和本地 workflow mirror。遇到异质结、吸附、HER/OER、界面、电荷差分或远程 ssh/sbatch/写入操作时，必须先确认范围和权限。
 ---
 
 # VASP 单层二维材料计算
 
-Use this skill when the user provides a monolayer 2D material POSCAR or asks for a complete monolayer VASP workflow on server `lilin`.
+Use this skill when the user provides a monolayer 2D material POSCAR or asks for a complete monolayer VASP workflow on server `lilin`. Also use it for reviewing or improving this skill's VASP workflow rules, local workflow mirror, safety boundaries, and handoff notes.
 
 This skill is for single-layer 2D materials. For heterojunctions, adsorption, HER/OER, interface binding energy, charge-density difference, or built-in electric-field analysis, first switch to a heterojunction/catalysis workflow or explicitly ask the user to confirm the scope.
+
+## Trigger and Scope
+
+- Trigger on monolayer 2D VASP planning, POSCAR audit, input preparation, result collection, workflow diagnosis, or local mirror review.
+- Trigger on development tasks that modify this skill's `SKILL.md`, `references/`, `scripts/remote-workflow/`, `agents/`, or handoff docs.
+- Do not silently expand a monolayer request into heterojunction, adsorption, catalytic reaction, defect, molecule, bulk, or surface-slab workflows.
+- If the user's structure or request may be outside monolayer scope, stop and ask for scope confirmation before preparing jobs.
+- For repository maintenance tasks, keep changes local unless the user explicitly asks for GitHub, installed-skill, or server synchronization actions.
 
 ## Required Reading
 
@@ -45,11 +53,34 @@ ssh lilin 'sed -n "1,260p" ~/calculation/1_dft/02_workflow/config/precision_stan
 
 Do not print SSH keys, tokens, or private credentials.
 
+## Safety Boundary
+
+- Never run `ssh lilin`, `sbatch`, remote deletion, remote overwrite, or remote file synchronization unless the user explicitly confirms that exact action in the current conversation.
+- Before any real submission, show the calculation list, assumptions, high-cost modules, dependency chain, dry-run result, and known risks. Submit only after explicit user confirmation.
+- Treat local edits under this repository as proposed changes only. They do not change the installed skill, the `lilin` workflow, or any real calculation unless the user separately requests synchronization.
+- Do not modify real calculation projects while reviewing this skill or the local workflow mirror.
+- Keep credentials private. Do not print GitHub tokens, SSH keys, license files, or machine-local secrets.
+
+## ChatGPT/Codex Collaboration
+
+- ChatGPT is the planning/review side: ask it to review Issues, PR diffs, `CHATGPT_REVIEW.md`, `CODEX_FEEDBACK.md`, and handoff files.
+- Codex is the implementation side: make local edits, run local checks, update feedback/handoff files, commit, push, and open PRs when requested.
+- Before Codex reads PR/Issue comments or pushes with GitHub CLI, confirm `gh` is available and authenticated. In PowerShell, use:
+
+```powershell
+gh auth status --hostname github.com
+gh auth login --hostname github.com --web --git-protocol https
+```
+
+- If `gh` is installed but not on PATH on Windows, try `C:\Program Files\GitHub CLI\gh.exe`.
+- For each task branch, stage explicit files only; do not use `git add .`.
+- Every task PR should update `CODEX_FEEDBACK.md` and `docs/handoff/YYYY-MM-DD_task_xxx.md`.
+
 ## Operating Rules
 
 1. Treat the user-provided POSCAR as the authoritative input, but audit it before preparing jobs.
 2. For every 2D geometry optimization, require `OPTCELL` and keep the vacuum direction fixed. The expected optimization control is in-plane relaxation with fixed `c` axis.
-3. Before any `sbatch`, show the calculation list, input-generation assumptions, high-cost tasks, and known risks. Submit only after explicit user confirmation.
+3. Before any `sbatch`, show the calculation list, input-generation assumptions, high-cost tasks, dependency chain, dry-run result, and known risks. Submit only after explicit user confirmation.
 4. Use `/home/lilin/input/sub.vasp` as the current Slurm submit-template reference unless the user updates the path.
 5. In the standard precision workflow, HSE-SCF, HSE-band, VASPKIT-710 optical conversion, and finite-displacement `phonopy_fd` are enabled by default. The old `IBRION=8` phonon task is retained only as optional `phonon_dfpt_check`. SOC and AIMD remain optional unless the user approves them. Strain, efield, CCD, Bader, and potential are disabled by default (heterojunction-only modules).
 6. Record enough provenance for paper extraction: POSCAR source, pseudopotentials, ENCUT rule, KPOINTS rule, INCAR settings, job IDs, convergence status, and extracted values.

@@ -1,8 +1,8 @@
 interface:
   display_name: "VASP 2D Monolayer"
-  short_description: "Audit and run monolayer 2D VASP workflows on lilin."
+  short_description: "Audit monolayer 2D VASP workflows with explicit server-safety gates."
   brand_color: "#2563EB"
-  default_prompt: "Use $vasp-2d-monolayer to audit this POSCAR, list the monolayer VASP calculations needed from local context first, and wait for confirmation before any SSH, Slurm submission, or remote write."
+  default_prompt: "Use $vasp-2d-monolayer to audit this POSCAR or local workflow change, list the monolayer VASP calculations and risks from local context first, and wait for explicit confirmation before any SSH, Slurm submission, remote write, or installed-skill sync."
 
 policy:
   allow_implicit_invocation: true
