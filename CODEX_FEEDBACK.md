@@ -10,25 +10,27 @@
 ## This Round Summary
 
 - Read ChatGPT's second PR review from PR #2.
-- Removed the full `vasp_references资料/` bundle from Git tracking with `git rm --cached`, preserving the local files.
+- Removed the full local reference bundle directory from Git tracking with `git rm --cached`, preserving local files on disk.
 - Updated `.gitignore` so the reference bundle remains local by default and future additions require explicit force-add or relocation into curated docs.
 - Updated review, feedback, handoff, and reference-index docs to reflect that the user has confirmed the full bundle should not remain in this PR.
+- Updated the PR body so it matches the final 11-file diff and no longer reports stale changed-file information.
 - Did not run `ssh lilin`, `sbatch`, or any remote compute/server write operation.
 - Did not modify real calculation tasks.
 
 ## Implemented Changes
 
-- `vasp_references资料/` is no longer tracked for this branch's final PR state.
-- `.gitignore` now scopes reference-bundle ignore behavior to `vasp_references资料/**` instead of globally ignoring every PDF/image/binary in the repository.
-- `CHATGPT_REVIEW.md` now records the second review URL and updated confirmation status.
-- `docs/VASP_REFERENCES_INDEX.md` now describes the bundle as local-only for this PR.
-- `CODEX_FEEDBACK.md` and the handoff file now state that reference-bundle removal is confirmed and implemented.
+- The reference bundle directory is no longer tracked for this branch's final PR state.
+- `.gitignore` now scopes reference-bundle ignore behavior to the reference bundle directory instead of globally ignoring every PDF/image/binary in the repository.
+- `CHATGPT_REVIEW.md` records the second review URL and updated confirmation status.
+- `docs/VASP_REFERENCES_INDEX.md` describes the bundle as local-only for this PR.
+- `CODEX_FEEDBACK.md` and the handoff file state that reference-bundle removal is confirmed and implemented.
 
 ## Diff Reality Check
 
-- Tracked files under `vasp_references资料/` after `git rm --cached`: 0.
+- Tracked files under the reference bundle directory after `git rm --cached`: 0.
+- Final PR changed-file count relative to `main`: 11.
 - Full local bundle files were preserved on disk.
-- Final PR should no longer add third-party PDFs, images, generated JSON, source trees, config files, or binaries from `vasp_references资料/`.
+- Final PR no longer adds third-party PDFs, images, generated JSON, source trees, config files, or binaries from the bundle.
 - Local workflow mirror changed: no in this follow-up.
 - Server execution source changed: no.
 
@@ -44,11 +46,13 @@
 - `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
 - `git status --short --branch`
 - GitHub PR comments read through the Codex GitHub plugin.
-- `git rm -r --cached -- "vasp_references资料"`
-- `git ls-files "vasp_references资料/*"`
+- `git rm -r --cached -- "vasp_references<Chinese-data-dir>"`
+- `git ls-files "vasp_references<Chinese-data-dir>/*"`
+- `git diff --stat origin/main...HEAD`
+- `C:\Program Files\GitHub CLI\gh.exe pr edit 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --body ...`
 - Local diffs reviewed before staging.
 
 ## Remaining Notes
 
-- The PR body was stale before this round and should be updated to match the new final diff.
-- Curated reference summaries should usually be added under `docs/`; if a small file must remain under `vasp_references资料/`, use an explicit force-add only after user approval.
+- The PR body was stale before this round and has been updated to match the new final diff.
+- Curated reference summaries should usually be added under `docs/`; if a small file must remain under the reference bundle directory, use an explicit force-add only after user approval.

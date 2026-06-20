@@ -12,14 +12,15 @@
 
 - Confirmed `gh` login with `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`.
 - Read ChatGPT's second review comment from PR #2.
-- Removed `vasp_references资料/` from Git tracking with `git rm --cached`, preserving local files.
+- Removed the full local reference bundle directory from Git tracking with `git rm --cached`, preserving local files.
 - Updated `.gitignore` so the reference bundle remains local by default and ignore rules are path-scoped.
 - Updated `CHATGPT_REVIEW.md`, `CODEX_FEEDBACK.md`, and `docs/VASP_REFERENCES_INDEX.md` to reflect the second review and confirmed bundle removal.
+- Updated the PR body so it matches the final 11-file diff and no longer reports stale changed-file information.
 - Kept the earlier bridge/template/skill-boundary improvements from the previous commit.
 
 ## Codex Did Not Complete
 
-- Did not delete the local `vasp_references资料/` files from disk.
+- Did not delete the local reference bundle files from disk.
 - Did not rewrite branch history.
 - Did not modify the formal installed skill directory under `C:\Users\11658\.codex\skills\vasp-2d-monolayer`.
 - Did not run `ssh lilin`, `sbatch`, or any remote compute/server write/delete operation.
@@ -32,11 +33,12 @@
 - `CODEX_FEEDBACK.md`
 - `docs/VASP_REFERENCES_INDEX.md`
 - `docs/handoff/2026-06-20_task_001_review-github-bridge.md`
-- `vasp_references资料/` removed from Git tracking only
+- Reference bundle directory removed from Git tracking only
 
 ## Diff Reality Check
 
-- Tracked files under `vasp_references资料/` after `git rm --cached`: 0.
+- Final PR changed-file count relative to `main`: 11.
+- Tracked files under the reference bundle directory after `git rm --cached`: 0.
 - Large reference bundle in final PR path: no.
 - Third-party PDFs/images/source/config/binaries in final PR path from the bundle: no.
 - Local bundle files preserved on disk: yes.
@@ -54,8 +56,10 @@
 - `C:\Program Files\GitHub CLI\gh.exe auth status -h github.com`
 - `git status --short --branch`
 - GitHub PR comments read through the Codex GitHub plugin.
-- `git rm -r --cached -- "vasp_references资料"`
-- `git ls-files "vasp_references资料/*"`
+- `git rm -r --cached -- "vasp_references<Chinese-data-dir>"`
+- `git ls-files "vasp_references<Chinese-data-dir>/*"`
+- `git diff --stat origin/main...HEAD`
+- `C:\Program Files\GitHub CLI\gh.exe pr edit 2 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --body ...`
 - Local diffs reviewed before staging.
 
 ## External Actions
@@ -63,7 +67,8 @@
 - `ssh lilin`: not run.
 - `sbatch`: not run.
 - Remote compute/server writes/deletes: not run.
-- GitHub push: pending after commit.
+- GitHub push: completed.
+- GitHub PR body update: completed.
 
 ## Sync Truth
 
@@ -74,7 +79,7 @@
 ## Risks
 
 - The local reference bundle still exists on disk but is ignored by Git.
-- The PR body needs to be kept consistent with the final diff.
+- The PR body has been updated to match the final diff.
 - If future curated reference summaries are needed, prefer `docs/` or force-add a small explicit file only after user approval.
 
 ## Suggested Next ChatGPT Review Focus
