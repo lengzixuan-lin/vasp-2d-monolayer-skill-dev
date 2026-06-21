@@ -30,21 +30,25 @@ BATCH_A_RESULT_MODULES = {
         "name": "opt",
         "normalized_module_label": "01_opt",
         "method_label": "pbe_geometry_optimization",
+        "parent_calculation": "00_input",
     },
     "02_scf": {
         "name": "scf",
         "normalized_module_label": "02_scf",
         "method_label": "pbe_scf",
+        "parent_calculation": "01_opt",
     },
     "03_pbeband": {
         "name": "band",
         "normalized_module_label": "03_band",
         "method_label": "pbe_band_structure",
+        "parent_calculation": "02_scf",
     },
     "04_dos": {
         "name": "dos",
         "normalized_module_label": "04_dos",
         "method_label": "pbe_dos",
+        "parent_calculation": "02_scf",
     },
 }
 
@@ -975,20 +979,46 @@ def _outcar_finished(outcar_path):
         return "General timing and accounting" in f.read()
 
 
-def _result_entry(name, value, unit, method_label, source_module,
-                  source_dir, source_files, parser, transformation,
-                  result_status):
+def _transformation_record(label, details=None):
+    return {
+        "label": label,
+        "details": details,
+    }
+
+
+def _parser_or_tool_record(name, command_or_source, version="workflow-local"):
     return {
         "name": name,
+        "version": version,
+        "command_or_source": command_or_source,
+    }
+
+
+def _result_entry(name, value, unit, method_label, source_module,
+                  source_dir, source_files, parent_calculation,
+                  parser_or_tool, transformation, convergence_status,
+                  result_status):
+    if isinstance(transformation, str):
+        transformation = _transformation_record(transformation)
+    return {
+        "value_name": name,
         "value": value,
         "unit": unit,
         "method_label": method_label,
         "source_module": source_module,
         "source_directory": source_dir,
         "source_files": source_files,
-        "parser": parser,
+        "parent_calculation": parent_calculation,
+        "parser_or_tool": parser_or_tool,
+        "convergence_status": convergence_status,
         "transformation": transformation,
+        "uncertainty_or_fit_quality": {
+            "type": "not_applicable",
+            "value": None,
+            "notes": None,
+        },
         "result_status": result_status,
+        "review_notes": [],
     }
 
 
@@ -1002,9 +1032,21 @@ def build_baseline_result_labels(project, mod_dir, info, parser=None):
     workflow_state = info.get("state", "unknown")
     outcar_exists = os.path.exists(outcar)
     outcar_finished = _outcar_finished(outcar)
-    parser_meta = {
-        "name": "OutcarParser" if parser else None,
-        "source": "scripts/remote-workflow/collect/outcar_parser.py",
+    parser_meta = _parser_or_tool_record(
+        "OutcarParser" if parser else "not_available",
+        "scripts/remote-workflow/collect/outcar_parser.py")
+    convergence_status = {
+        "electronic": "unknown",
+        "ionic": (
+            "converged"
+            if parser and parser.has_converged()
+            else "not_confirmed"
+        ),
+        "task_status": (
+            "finished"
+            if outcar_finished
+            else ("missing_evidence" if not outcar_exists else "not_finished")
+        ),
     }
     source_files = {
         "OUTCAR": path_record(
@@ -1051,6 +1093,7 @@ def build_baseline_result_labels(project, mod_dir, info, parser=None):
     }
     method = module_meta["method_label"]
     source_module = module_meta["normalized_module_label"]
+    parent_calculation = module_meta["parent_calculation"]
 
     if parser:
         total_energy = parser.get_total_energy()
@@ -1060,7 +1103,8 @@ def build_baseline_result_labels(project, mod_dir, info, parser=None):
                 energy_status = "diagnostic"
             labels["results"].append(_result_entry(
                 "total_energy", total_energy, "eV", method, source_module,
-                work_dir, ["OUTCAR"], parser_meta, "none", energy_status))
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, energy_status))
         fermi = parser.get_fermi_level()
         if fermi is not None:
             fermi_status = (
@@ -1069,44 +1113,47 @@ def build_baseline_result_labels(project, mod_dir, info, parser=None):
             )
             labels["results"].append(_result_entry(
                 "fermi_level", fermi, "eV", method, source_module,
-                work_dir, ["OUTCAR"], parser_meta, "none", fermi_status))
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, fermi_status))
         max_force = parser.get_max_force()
         if module_meta["name"] == "opt" and max_force is not None:
             force_status = result_status if parser.has_converged() else "diagnostic"
             labels["results"].append(_result_entry(
                 "max_force", max_force, "eV/A", method, source_module,
-                work_dir, ["OUTCAR"], parser_meta, "none", force_status))
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, force_status))
 
     if module_meta["name"] == "band":
-        band_parser = {
-            "name": "VASPKIT 211 output",
-            "source": "BAND_GAP",
-        }
+        band_parser = _parser_or_tool_record("VASPKIT 211 output", "BAND_GAP")
         if os.path.exists(band_gap_file):
             with open(band_gap_file, "r", errors="ignore") as f:
                 band_gap_text = f.read().strip()
             labels["results"].append(_result_entry(
                 "band_gap", band_gap_text, "eV", method, source_module,
-                work_dir, ["BAND_GAP"], band_parser,
-                "band_gap_extraction", result_status))
+                work_dir, ["BAND_GAP"], parent_calculation, band_parser,
+                "band_gap_extraction", convergence_status, result_status))
         else:
             labels["results"].append(_result_entry(
                 "band_gap", None, "eV", method, source_module,
-                work_dir, ["BAND_GAP"], band_parser,
-                "band_gap_extraction", "diagnostic"))
+                work_dir, ["BAND_GAP"], parent_calculation, band_parser,
+                "band_gap_extraction", convergence_status, "diagnostic"))
 
     if module_meta["name"] == "dos":
         dos_status = "pending_review" if os.path.exists(doscar) else "diagnostic"
         labels["results"].append(_result_entry(
             "dos_output", "present" if os.path.exists(doscar) else None,
             None, method, source_module, work_dir, ["DOSCAR"],
-            {"name": None, "source": "DOSCAR parser not implemented in Batch A"},
-            "dos_postprocessing_pending", dos_status))
+            parent_calculation,
+            _parser_or_tool_record(
+                "not_implemented",
+                "DOSCAR parser not implemented in Batch A"),
+            "dos_postprocessing_pending", convergence_status, dos_status))
 
     if not labels["results"]:
         labels["results"].append(_result_entry(
             "module_collection_status", workflow_state, None, method,
-            source_module, work_dir, [], parser_meta, "none", result_status))
+            source_module, work_dir, [], parent_calculation, parser_meta,
+            "none", convergence_status, result_status))
 
     return labels
 

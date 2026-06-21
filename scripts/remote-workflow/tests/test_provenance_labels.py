@@ -16,6 +16,17 @@ class FakeProject:
 
 
 class TestBatchAResultLabels(unittest.TestCase):
+    def assert_result_schema_keys(self, result):
+        self.assertIn("value_name", result)
+        self.assertIn("parser_or_tool", result)
+        self.assertIn("name", result["parser_or_tool"])
+        self.assertIn("transformation", result)
+        self.assertIn("label", result["transformation"])
+        self.assertIn("parent_calculation", result)
+        self.assertIn("convergence_status", result)
+        self.assertIn("task_status", result["convergence_status"])
+        self.assertIn("result_status", result)
+
     def test_prepared_module_without_outcar_is_pending_review(self):
         import workflow
 
@@ -30,6 +41,10 @@ class TestBatchAResultLabels(unittest.TestCase):
         self.assertEqual(labels["review_state"]["state"], "pending_review")
         self.assertEqual(
             labels["results"][0]["result_status"], "pending_review")
+        self.assert_result_schema_keys(labels["results"][0])
+        self.assertEqual(labels["results"][0]["value_name"],
+                         "module_collection_status")
+        self.assertEqual(labels["results"][0]["parent_calculation"], "01_opt")
 
     def test_completed_band_without_band_gap_is_diagnostic(self):
         import workflow
@@ -50,8 +65,14 @@ class TestBatchAResultLabels(unittest.TestCase):
             labels["module_identity"]["normalized_module_label"], "03_band")
         band_gap = [
             item for item in labels["results"]
-            if item["name"] == "band_gap"
+            if item["value_name"] == "band_gap"
         ][0]
+        self.assert_result_schema_keys(band_gap)
+        self.assertEqual(band_gap["parent_calculation"], "02_scf")
+        self.assertEqual(band_gap["parser_or_tool"]["name"],
+                         "VASPKIT 211 output")
+        self.assertEqual(band_gap["transformation"]["label"],
+                         "band_gap_extraction")
         self.assertEqual(band_gap["result_status"], "diagnostic")
         self.assertIsNone(band_gap["value"])
 

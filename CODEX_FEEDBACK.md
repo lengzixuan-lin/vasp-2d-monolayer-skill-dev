@@ -48,6 +48,22 @@
 - Prepared but uncollected modules get pending-review labels rather than final labels.
 - `result_labels.yaml` is written from collection-time evidence only.
 
+## ChatGPT Review Follow-up
+
+- Read the PR #23 ChatGPT review.
+- Aligned Batch A result entries with the accepted task_008 schema:
+  - `value_name` replaces transitional `name`.
+  - `parser_or_tool.name` replaces transitional `parser`.
+  - `transformation.label` replaces string-only transformation labels.
+  - `parent_calculation` is emitted for Batch A result entries.
+  - `convergence_status.task_status` is emitted for each result entry.
+- Added unit-test assertions for the schema-aligned result keys.
+- Batch A parent calculations are:
+  - `01_opt` -> `00_input`
+  - `02_scf` -> `01_opt`
+  - `03_band` -> `02_scf`
+  - `04_dos` -> `02_scf`
+
 ## Diff Reality Check
 
 - Workflow implementation files changed:
@@ -94,6 +110,10 @@
 - `git commit -m "task_010: add batch a provenance and labels"`
 - `git push -u origin task_010_batch-a-core-provenance-baseline-labels`
 - `C:\Program Files\GitHub CLI\gh.exe pr create ...`
+- `gh pr view 23 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json ...`
+- `gh api repos/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pulls/23/comments --paginate`
+- `python -m py_compile scripts\remote-workflow\provenance_utils.py scripts\remote-workflow\workflow.py scripts\remote-workflow\modules\base.py scripts\remote-workflow\collect\outcar_parser.py scripts\remote-workflow\tests\test_provenance_labels.py`
+- `python -m unittest discover scripts\remote-workflow\tests`
 
 ## Remaining Notes
 

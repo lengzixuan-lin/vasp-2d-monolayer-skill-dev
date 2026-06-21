@@ -45,6 +45,18 @@ This is the first local-only workflow implementation PR for provenance/result la
 - Missing `BAND_GAP` in `03_pbeband` is diagnostic, not final.
 - DOS evidence is labeled `dos_postprocessing_pending`; no DOS parser was implemented in this batch.
 
+## ChatGPT review follow-up
+
+- Read the ChatGPT review on PR #23.
+- Fixed result-entry schema drift before merge:
+  - `value_name` is now emitted instead of `name`.
+  - `parser_or_tool` is now emitted instead of `parser`.
+  - `transformation` is now an object with `label` and `details`.
+  - `parent_calculation` is included for Batch A result entries.
+  - `convergence_status.task_status` is included for each result entry.
+- Added tests that assert schema-aligned keys on generated result labels.
+- Batch A parent calculation mapping is `01_opt -> 00_input`, `02_scf -> 01_opt`, `03_band -> 02_scf`, and `04_dos -> 02_scf`.
+
 ## Checks run
 
 - `python -m py_compile scripts\remote-workflow\provenance_utils.py scripts\remote-workflow\workflow.py scripts\remote-workflow\modules\base.py scripts\remote-workflow\collect\outcar_parser.py scripts\remote-workflow\tests\test_provenance_labels.py`
