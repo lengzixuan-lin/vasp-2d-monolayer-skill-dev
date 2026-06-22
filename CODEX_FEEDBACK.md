@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/30
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/31
 - Branch: `task_012_batch-c-effective-mass-mobility-fitted-result-labels`
 - Task ID: `task_012_batch-c-effective-mass-mobility-fitted-result-labels`
 

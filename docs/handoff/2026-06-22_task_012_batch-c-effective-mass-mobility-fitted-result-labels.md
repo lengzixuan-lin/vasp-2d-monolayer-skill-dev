@@ -3,6 +3,7 @@
 ## Scope
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/30
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/31
 - Branch: `task_012_batch-c-effective-mass-mobility-fitted-result-labels`
 - Base: synced `main` after PR #28 / Batch B squash merge.
 - Scope: local-only workflow implementation for `11_effective_mass` and `12_mobility`.
