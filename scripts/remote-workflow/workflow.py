@@ -51,6 +51,39 @@ BATCH_A_RESULT_MODULES = {
         "parent_calculation": "02_scf",
     },
 }
+BATCH_B_RESULT_MODULES = {
+    "05_hse_scf": {
+        "name": "hse_scf",
+        "normalized_module_label": "05_hse_scf",
+        "method_label": "hse_scf",
+        "parent_calculation": "02_scf",
+    },
+    "05_hse_band": {
+        "name": "hse_band",
+        "normalized_module_label": "05_hse_band",
+        "method_label": "hse_band_structure",
+        "parent_calculation": "05_hse_scf",
+    },
+    "08_optical": {
+        "name": "optical",
+        "normalized_module_label": "07_optical",
+        "method_label": "pbe_loptics_vaspkit_2d_optical",
+        "parent_calculation": "02_scf",
+    },
+    "09_phonopy_fd": {
+        "name": "phonopy_fd",
+        "normalized_module_label": "08_phonopy_fd",
+        "method_label": "finite_displacement_phonopy_2d",
+        "parent_calculation": "01_opt",
+    },
+}
+OPTICAL_2D_OUTPUTS = [
+    "ABSORPTION_2D.dat",
+    "REFLECTION_2D.dat",
+    "TRANSMISSION_2D.dat",
+    "REAL_OPTICAL_CONDUCTIVITY_2D.dat",
+    "IMAG_OPTICAL_CONDUCTIVITY_2D.dat",
+]
 
 
 def now_iso():
@@ -994,6 +1027,51 @@ def _parser_or_tool_record(name, command_or_source, version="workflow-local"):
     }
 
 
+def _read_text_if_exists(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", errors="ignore") as f:
+        return f.read()
+
+
+def _parse_simple_incar(path):
+    settings = {}
+    text = _read_text_if_exists(path)
+    if text is None:
+        return settings
+    for raw_line in text.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        settings[key.strip().upper()] = value.strip()
+    return settings
+
+
+def optical_vaspkit_task_policy(task):
+    """Classify VASPKIT optical tasks for monolayer result labels."""
+    if int(task) == 710:
+        return {
+            "task": 710,
+            "label": "vaspkit_710_2d_optical_conversion",
+            "valid_for_monolayer_absorption": True,
+            "scope": "2d_low_dimensional_optical_conversion",
+        }
+    if int(task) == 711:
+        return {
+            "task": 711,
+            "label": "vaspkit_711_bulk_optical_absorption",
+            "valid_for_monolayer_absorption": False,
+            "scope": "bulk_only_invalid_for_monolayer_final_labels",
+        }
+    return {
+        "task": int(task),
+        "label": "unsupported_optical_task",
+        "valid_for_monolayer_absorption": False,
+        "scope": "not_accepted_for_monolayer_final_labels",
+    }
+
+
 def _result_entry(name, value, unit, method_label, source_module,
                   source_dir, source_files, parent_calculation,
                   parser_or_tool, transformation, convergence_status,
@@ -1158,6 +1236,297 @@ def build_baseline_result_labels(project, mod_dir, info, parser=None):
     return labels
 
 
+def _batch_b_convergence_status(parser, outcar_exists, outcar_finished):
+    scf_history = parser.get_scf_history() if parser else []
+    electronic = "converged" if scf_history else "not_confirmed"
+    return {
+        "electronic": electronic,
+        "ionic": (
+            "converged"
+            if parser and parser.has_converged()
+            else "not_confirmed"
+        ),
+        "task_status": (
+            "finished"
+            if outcar_finished
+            else ("missing_evidence" if not outcar_exists else "not_finished")
+        ),
+    }
+
+
+def _batch_b_base_labels(project, mod_dir, info, parser=None):
+    module_meta = BATCH_B_RESULT_MODULES[mod_dir]
+    work_dir = os.path.join(project.project_dir, mod_dir)
+    outcar = os.path.join(work_dir, "OUTCAR")
+    outcar_exists = os.path.exists(outcar)
+    outcar_finished = _outcar_finished(outcar)
+    parser_meta = _parser_or_tool_record(
+        "OutcarParser" if parser else "not_available",
+        "scripts/remote-workflow/collect/outcar_parser.py")
+    convergence_status = _batch_b_convergence_status(
+        parser, outcar_exists, outcar_finished)
+    base_status = _result_status_from_evidence(
+        info.get("state", "unknown"), outcar_exists, outcar_finished)
+    if convergence_status["electronic"] != "converged" and base_status == "final":
+        base_status = "diagnostic"
+    labels = {
+        "schema_version": "2026-06-20.batch_b.v1",
+        "generated_at": now_iso(),
+        "module_identity": {
+            "name": module_meta["name"],
+            "actual_module_dir": mod_dir,
+            "normalized_module_label": module_meta["normalized_module_label"],
+            "method_label": module_meta["method_label"],
+            "batch_a_baseline": False,
+            "extends_batch_a_schema": True,
+        },
+        "collection_context": {
+            "workflow_state": info.get("state", "unknown"),
+            "job_id": info.get("job_id"),
+            "source_directory": work_dir,
+        },
+        "source_files": {
+            "OUTCAR": path_record(
+                outcar, base_dir=project.project_dir,
+                role="vasp_output", required=True),
+            "INCAR": path_record(
+                os.path.join(work_dir, "INCAR"), base_dir=project.project_dir,
+                role="rendered_input_settings", required=True),
+            "POSCAR": path_record(
+                os.path.join(work_dir, "POSCAR"), base_dir=project.project_dir,
+                role="source_structure", required=True),
+        },
+        "parser": parser_meta,
+        "convergence_status": {
+            "outcar_exists": outcar_exists,
+            "outcar_normal_finish": outcar_finished,
+            "electronic_convergence_evidence": bool(
+                parser and parser.get_scf_history()),
+            "ionic_converged": parser.has_converged() if parser else None,
+            "n_ionic_steps": parser.get_n_ionic_steps() if parser else None,
+        },
+        "results": [],
+        "review_state": {
+            "state": "pending_review" if base_status == "final" else base_status,
+            "reason": "batch_b_evidence_based_labels",
+        },
+    }
+    return labels, module_meta, work_dir, parser_meta, convergence_status, base_status
+
+
+def build_batch_b_result_labels(project, mod_dir, info, parser=None):
+    """Build Batch B labels from local HSE/optical/phonopy evidence."""
+    labels, module_meta, work_dir, parser_meta, conv, base_status = (
+        _batch_b_base_labels(project, mod_dir, info, parser))
+    method = module_meta["method_label"]
+    source_module = module_meta["normalized_module_label"]
+    parent = module_meta["parent_calculation"]
+    incar = _parse_simple_incar(os.path.join(work_dir, "INCAR"))
+
+    if module_meta["name"] == "hse_scf":
+        parent_files = {
+            "01_opt/CONTCAR": "parent_structure",
+            "02_scf/CHGCAR": "parent_charge_density",
+            "01_opt/POTCAR": "parent_potcar",
+            "02_scf/WAVECAR": "parent_wavecar_not_blindly_reused",
+        }
+        for name, role in parent_files.items():
+            labels["source_files"][name] = path_record(
+                os.path.join(project.project_dir, name),
+                base_dir=project.project_dir, role=role,
+                required=name != "02_scf/WAVECAR")
+        labels["hse_incar_settings"] = {
+            key: incar.get(key)
+            for key in ("AEXX", "HFSCREEN", "LHFCALC", "PRECFOCK", "ALGO")
+        }
+        labels["parent_policy"] = {
+            "parent_calculation": parent,
+            "CONTCAR": "required parent structure from 01_opt/CONTCAR",
+            "CHGCAR": "required parent charge density from 02_scf/CHGCAR",
+            "POTCAR": "reused from 01_opt/POTCAR",
+            "WAVECAR": "remove by default; do not blindly reuse PBE WAVECAR",
+        }
+        value = parser.get_total_energy() if parser else None
+        required_parent_exists = all(
+            labels["source_files"][name]["exists"]
+            for name in ("01_opt/CONTCAR", "02_scf/CHGCAR", "01_opt/POTCAR")
+        )
+        status = (
+            base_status
+            if value is not None and required_parent_exists
+            else "diagnostic"
+        )
+        labels["results"].append(_result_entry(
+            "hse_scf_total_energy", value, "eV", method, source_module,
+            work_dir, ["OUTCAR"], parent, parser_meta, "none", conv, status))
+        if status == "diagnostic":
+            labels["review_state"]["state"] = "diagnostic"
+
+    elif module_meta["name"] == "hse_band":
+        band_gap_file = os.path.join(work_dir, "BAND_GAP")
+        eigenval = os.path.join(work_dir, "EIGENVAL")
+        parent_chgcar = os.path.join(project.project_dir, "05_hse_scf", "CHGCAR")
+        labels["parent_policy"] = {
+            "parent_calculation": parent,
+            "CHGCAR": "required from 05_hse_scf/CHGCAR",
+            "WAVECAR": (
+                "remove by default; optional only if explicitly verified "
+                "k-point/NBANDS/method compatible"
+            ),
+        }
+        labels["runtime_kpoints"] = {
+            "tool": "VASPKIT",
+            "task": 251,
+            "purpose": "hybrid band KPOINTS with uniform grid plus path",
+        }
+        labels["source_files"]["05_hse_scf/CHGCAR"] = path_record(
+            parent_chgcar, base_dir=project.project_dir,
+            role="required_parent_hse_scf_charge_density", required=True)
+        band_gap_exists = os.path.exists(band_gap_file)
+        band_output_exists = os.path.exists(eigenval)
+        parent_exists = os.path.exists(parent_chgcar)
+        status = (
+            base_status
+            if band_gap_exists and band_output_exists and parent_exists
+            else "diagnostic"
+        )
+        labels["source_files"]["EIGENVAL"] = path_record(
+            eigenval, base_dir=project.project_dir,
+            role="hse_band_output", required=True)
+        labels["source_files"]["BAND_GAP"] = path_record(
+            band_gap_file, base_dir=project.project_dir,
+            role="hse_band_gap_output", required=True)
+        labels["results"].append(_result_entry(
+            "hse_band_gap", _read_text_if_exists(band_gap_file), "eV",
+            method, source_module, work_dir, ["BAND_GAP"], parent,
+            _parser_or_tool_record("VASPKIT 252 output", "BAND_GAP"),
+            "hse_band_gap_extraction", conv, status))
+        if status == "diagnostic":
+            labels["review_state"]["state"] = "diagnostic"
+
+    elif module_meta["name"] == "optical":
+        labels["normalized_label_note"] = (
+            "Actual directory is 08_optical; public normalized label is "
+            "07_optical to match the documented workflow order."
+        )
+        labels["optical_steps"] = {
+            "raw_vasp_response": {
+                "LOPTICS": incar.get("LOPTICS"),
+                "NBANDS": incar.get("NBANDS"),
+                "source_files": ["POSCAR", "vasprun.xml", "OUTCAR"],
+            },
+            "converted_2d_spectra": {
+                "tool": "VASPKIT",
+                "task_policy": optical_vaspkit_task_policy(710),
+                "bulk_only_invalid_task": optical_vaspkit_task_policy(711),
+                "expected_outputs": OPTICAL_2D_OUTPUTS,
+            },
+        }
+        vasprun = os.path.join(work_dir, "vasprun.xml")
+        labels["source_files"]["vasprun.xml"] = path_record(
+            vasprun, base_dir=project.project_dir,
+            role="raw_loptics_vasprun", required=True)
+        for name in ("REAL.in", "IMAG.in"):
+            labels["source_files"][name] = path_record(
+                os.path.join(work_dir, name), base_dir=project.project_dir,
+                role="vaspkit_710_input", required=False)
+        missing_outputs = []
+        for name in OPTICAL_2D_OUTPUTS:
+            path = os.path.join(work_dir, name)
+            labels["source_files"][name] = path_record(
+                path, base_dir=project.project_dir,
+                role="vaspkit_710_2d_output", required=True)
+            if not os.path.exists(path):
+                missing_outputs.append(name)
+        converted_status = base_status if not missing_outputs else "diagnostic"
+        labels["results"].append(_result_entry(
+            "raw_loptics_response",
+            "present" if os.path.exists(vasprun) else None,
+            None, method, source_module, work_dir,
+            ["vasprun.xml", "OUTCAR"], parent, parser_meta,
+            "raw_vasp_loptics_response", conv,
+            base_status if os.path.exists(vasprun) else "diagnostic"))
+        labels["results"].append(_result_entry(
+            "vaspkit_710_2d_spectra",
+            "present" if not missing_outputs else None,
+            None, method, source_module, work_dir, OPTICAL_2D_OUTPUTS,
+            parent,
+            _parser_or_tool_record("VASPKIT 710", "vaspkit_710.log"),
+            _transformation_record(
+                "vaspkit_710_2d_optical_conversion",
+                {"missing_outputs": missing_outputs}),
+            conv, converted_status))
+        labels["results"].append(_result_entry(
+            "vaspkit_711_bulk_absorption_guard",
+            "invalid_for_monolayer_final_labels",
+            None, method, source_module, work_dir, [], parent,
+            _parser_or_tool_record("VASPKIT 711", "not_run_by_workflow"),
+            _transformation_record(
+                "bulk_only_invalid_for_monolayer_absorption",
+                optical_vaspkit_task_policy(711)),
+            conv, "diagnostic"))
+        if missing_outputs:
+            labels["review_state"]["state"] = "diagnostic"
+
+    elif module_meta["name"] == "phonopy_fd":
+        phonopy_files = [
+            ("phonopy_disp.yaml", "phonopy_displacement_source", True),
+            ("displacement_manifest.yaml", "fd_subtask_manifest", True),
+            ("FORCE_SETS", "phonopy_force_sets", True),
+            ("phonopy.yaml", "phonopy_summary", False),
+            (os.path.join("results", "phonon_summary.yaml"),
+             "workflow_phonon_summary", True),
+        ]
+        missing_required = []
+        for name, role, required in phonopy_files:
+            path = os.path.join(work_dir, name)
+            labels["source_files"][name] = path_record(
+                path, base_dir=project.project_dir, role=role,
+                required=required)
+            if required and not os.path.exists(path):
+                missing_required.append(name)
+        settings_path = os.path.join(work_dir, "phonopy_fd_settings.yaml")
+        settings = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r") as f:
+                settings = yaml.safe_load(f) or {}
+        labels["phonopy_fd_settings"] = {
+            "parent_calculation": parent,
+            "supercell_dim": settings.get("dim"),
+            "displacement_distance": settings.get("displacement_distance"),
+            "symprec": settings.get("symprec"),
+            "dos_mesh": settings.get("dos_mesh"),
+            "band_path": settings.get("band_path"),
+            "band_points": settings.get("band_points"),
+        }
+        status = base_status if not missing_required else "diagnostic"
+        labels["results"].append(_result_entry(
+            "phonopy_fd_stability_summary",
+            "present" if not missing_required else None,
+            None, method, source_module, work_dir,
+            [name for name, _, _ in phonopy_files], parent,
+            _parser_or_tool_record(
+                "phonopy finite-displacement outputs",
+                "FORCE_SETS + results/phonon_summary.yaml"),
+            _transformation_record(
+                "finite_displacement_phonopy_summary",
+                {"missing_required": missing_required}),
+            conv, status))
+        if missing_required:
+            labels["review_state"]["state"] = "diagnostic"
+
+    return labels
+
+
+def write_batch_b_result_labels(project, mod_dir, info, parser=None):
+    labels = build_batch_b_result_labels(project, mod_dir, info, parser)
+    path = os.path.join(project.project_dir, mod_dir, "result_labels.yaml")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        yaml.dump(labels, f, default_flow_style=False)
+    return path
+
+
 def write_baseline_result_labels(project, mod_dir, info, parser=None):
     labels = build_baseline_result_labels(project, mod_dir, info, parser)
     path = os.path.join(project.project_dir, mod_dir, "result_labels.yaml")
@@ -1193,6 +1562,11 @@ def cmd_collect(args):
 
         if mod_dir in BATCH_A_RESULT_MODULES:
             label_path = write_baseline_result_labels(
+                project, mod_dir, info, parser=parser)
+            update_module_status(
+                status, mod_dir, result_labels_file=label_path)
+        elif mod_dir in BATCH_B_RESULT_MODULES:
+            label_path = write_batch_b_result_labels(
                 project, mod_dir, info, parser=parser)
             update_module_status(
                 status, mod_dir, result_labels_file=label_path)
