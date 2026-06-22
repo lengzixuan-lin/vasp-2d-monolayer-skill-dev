@@ -3,7 +3,7 @@
 ## GitHub Context
 
 - Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/26
-- PR: pending
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/28
 - Branch: `task_011_batch-b-hse-optical-phonopy-provenance-labels`
 - Task ID: `task_011_batch-b-hse-optical-phonopy-provenance-labels`
 
