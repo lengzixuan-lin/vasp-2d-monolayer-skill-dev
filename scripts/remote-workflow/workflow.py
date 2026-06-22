@@ -77,6 +77,20 @@ BATCH_B_RESULT_MODULES = {
         "parent_calculation": "01_opt",
     },
 }
+BATCH_C_RESULT_MODULES = {
+    "11_effective_mass": {
+        "name": "effective_mass",
+        "normalized_module_label": "11_effective_mass",
+        "method_label": "pbe_effective_mass_curvature_fit",
+        "parent_calculation": "02_scf + 03_pbeband",
+    },
+    "12_mobility": {
+        "name": "mobility",
+        "normalized_module_label": "12_mobility",
+        "method_label": "deformation_potential_mobility_fit",
+        "parent_calculation": "11_effective_mass + 02_scf + 01_opt",
+    },
+}
 OPTICAL_2D_OUTPUTS = [
     "ABSORPTION_2D.dat",
     "REFLECTION_2D.dat",
@@ -1048,6 +1062,13 @@ def _parse_simple_incar(path):
     return settings
 
 
+def _safe_load_yaml(path):
+    if not os.path.exists(path):
+        return {}
+    with open(path, "r", errors="ignore") as f:
+        return yaml.safe_load(f) or {}
+
+
 def optical_vaspkit_task_policy(task):
     """Classify VASPKIT optical tasks for monolayer result labels."""
     if int(task) == 710:
@@ -1518,6 +1539,450 @@ def build_batch_b_result_labels(project, mod_dir, info, parser=None):
     return labels
 
 
+def _apply_fit_quality(result, quality):
+    result["uncertainty_or_fit_quality"] = quality
+    return result
+
+
+def _batch_c_base_labels(project, mod_dir, info):
+    module_meta = BATCH_C_RESULT_MODULES[mod_dir]
+    work_dir = os.path.join(project.project_dir, mod_dir)
+    summary_name = (
+        os.path.join("results", "em_summary.yaml")
+        if module_meta["name"] == "effective_mass"
+        else os.path.join("results", "mobility_summary.yaml")
+    )
+    summary_path = os.path.join(work_dir, summary_name)
+    summary_exists = os.path.exists(summary_path)
+    base_status = _result_status_from_evidence(
+        info.get("state", "unknown"), summary_exists, summary_exists)
+    convergence_status = {
+        "electronic": "not_applicable_manager_summary",
+        "ionic": "not_applicable_manager_summary",
+        "task_status": "finished" if summary_exists else "missing_evidence",
+    }
+    labels = {
+        "schema_version": "2026-06-22.batch_c.v1",
+        "generated_at": now_iso(),
+        "module_identity": {
+            "name": module_meta["name"],
+            "actual_module_dir": mod_dir,
+            "normalized_module_label": module_meta["normalized_module_label"],
+            "method_label": module_meta["method_label"],
+            "extends_batch_a_schema": True,
+            "extends_batch_b_schema": True,
+        },
+        "collection_context": {
+            "workflow_state": info.get("state", "unknown"),
+            "job_id": info.get("job_id"),
+            "source_directory": work_dir,
+        },
+        "source_files": {
+            summary_name: path_record(
+                summary_path, base_dir=project.project_dir,
+                role="fitted_result_summary", required=True),
+        },
+        "parser": _parser_or_tool_record(
+            "workflow manager summary parser", summary_name),
+        "convergence_status": {
+            "summary_exists": summary_exists,
+            "manager_summary_complete": summary_exists,
+        },
+        "results": [],
+        "review_state": {
+            "state": "pending_review" if base_status == "final" else base_status,
+            "reason": "batch_c_fitted_result_evidence_labels",
+        },
+    }
+    return labels, module_meta, work_dir, base_status, convergence_status
+
+
+def _status_from_missing_and_quality(base_status, missing, quality_pass):
+    if missing or not quality_pass:
+        return "diagnostic"
+    return base_status
+
+
+def build_batch_c_result_labels(project, mod_dir, info):
+    """Build Batch C fitted-result labels from local summary evidence."""
+    labels, module_meta, work_dir, base_status, conv = _batch_c_base_labels(
+        project, mod_dir, info)
+    method = module_meta["method_label"]
+    source_module = module_meta["normalized_module_label"]
+
+    if module_meta["name"] == "effective_mass":
+        settings_path = os.path.join(work_dir, "effective_mass_settings.yaml")
+        summary_path = os.path.join(work_dir, "results", "em_summary.yaml")
+        summary_csv = os.path.join(work_dir, "results", "em_summary.csv")
+        runs_path = os.path.join(work_dir, "em_runs.yaml")
+        edge_path = os.path.join(work_dir, "00_edge_source", "band_edge.yaml")
+        settings = _safe_load_yaml(settings_path)
+        summary = _safe_load_yaml(summary_path)
+        runs = _safe_load_yaml(runs_path)
+        edge_source = settings.get("edge_source", "03_pbeband")
+        charge_parent = settings.get("charge_parent", "02_scf")
+        parent = f"{charge_parent} + {edge_source}"
+        labels["parent_links"] = {
+            "charge_parent": charge_parent,
+            "band_edge_parent": edge_source,
+            "parent_calculation": parent,
+        }
+        for rel, role, required in (
+            ("effective_mass_settings.yaml", "effective_mass_settings", True),
+            (os.path.join("00_edge_source", "band_edge.yaml"),
+             "band_edge_source", True),
+            ("em_runs.yaml", "effective_mass_target_manifest", True),
+            (os.path.join("results", "em_summary.csv"),
+             "effective_mass_csv_output", False),
+            (f"{edge_source}/EIGENVAL", "parent_band_eigenval", True),
+            (f"{charge_parent}/CHGCAR", "parent_charge_density", True),
+        ):
+            labels["source_files"][rel] = path_record(
+                os.path.join(project.project_dir, rel)
+                if "/" in rel and rel.split("/", 1)[0] in {edge_source, charge_parent}
+                else os.path.join(work_dir, rel),
+                base_dir=project.project_dir, role=role, required=required)
+
+        missing_global = [
+            name for name, path in (
+                ("00_edge_source/band_edge.yaml", edge_path),
+                ("em_runs.yaml", runs_path),
+                ("results/em_summary.yaml", summary_path),
+            )
+            if not os.path.exists(path)
+        ]
+        targets = runs.get("targets", [])
+        target_run_dirs = {
+            target.get("run_dir") for target in targets if target.get("run_dir")
+        }
+        if not target_run_dirs:
+            missing_global.append("target_run_manifest_entries")
+        labels["effective_mass_target_manifest"] = {
+            "n_targets": len(targets),
+            "target_run_dirs": [target.get("run_dir") for target in targets],
+        }
+        target_evidence = []
+        for target in targets:
+            run_dir = target.get("run_dir")
+            if not run_dir:
+                continue
+            eigenval = os.path.join(work_dir, run_dir, "EIGENVAL")
+            kpoints = os.path.join(work_dir, run_dir, "KPOINTS")
+            target_record = os.path.join(work_dir, run_dir, "em_target.yaml")
+            target_evidence.append({
+                "run_dir": run_dir,
+                "carrier": target.get("carrier"),
+                "edge": target.get("edge"),
+                "valley": target.get("valley_label") or target.get("valley_index"),
+                "direction": target.get("direction"),
+                "EIGENVAL": path_record(
+                    eigenval, base_dir=project.project_dir,
+                    role="target_effective_mass_eigenval", required=True),
+                "KPOINTS": path_record(
+                    kpoints, base_dir=project.project_dir,
+                    role="target_effective_mass_kpoints", required=True),
+                "em_target.yaml": path_record(
+                    target_record, base_dir=project.project_dir,
+                    role="target_effective_mass_metadata", required=True),
+            })
+        labels["target_runs"] = target_evidence
+
+        results = summary.get("results", [])
+        if not results:
+            status = _status_from_missing_and_quality(
+                base_status, missing_global + ["fit_quality_evidence"], False)
+            labels["results"].append(_result_entry(
+                "effective_mass_fit_summary",
+                "present" if os.path.exists(summary_path) else None,
+                None, method, source_module, work_dir,
+                ["results/em_summary.yaml", "em_runs.yaml"],
+                parent, labels["parser"],
+                _transformation_record(
+                    "effective_mass_curvature_fit",
+                    {"missing_required": missing_global + ["fit_quality_evidence"]}),
+                conv, status))
+        for item in results:
+            run_dir = item.get("run_dir")
+            primary = (item.get("fits") or [{}])[-1]
+            fit_quality_present = all(
+                key in primary
+                for key in ("r2", "max_abs_residual_meV",
+                            "fit_energy_window_meV", "curvature_sign_ok")
+            ) and "quality_pass" in item
+            missing = list(missing_global)
+            if run_dir not in target_run_dirs:
+                missing.append("target_run_manifest_entry")
+            for name in ("EIGENVAL", "KPOINTS", "em_target.yaml"):
+                path = os.path.join(work_dir, run_dir or "", name)
+                if not os.path.exists(path):
+                    missing.append(f"{run_dir}/{name}")
+            if not fit_quality_present:
+                missing.append("fit_quality_evidence")
+            quality_pass = bool(item.get("quality_pass")) and fit_quality_present
+            status = _status_from_missing_and_quality(
+                base_status, missing, quality_pass)
+            result = _result_entry(
+                "effective_mass_m0",
+                item.get("primary_effective_mass_m0"), "m0",
+                method, source_module, work_dir,
+                [
+                    f"{run_dir}/EIGENVAL" if run_dir else "EIGENVAL",
+                    f"{run_dir}/KPOINTS" if run_dir else "KPOINTS",
+                    f"{run_dir}/em_target.yaml" if run_dir else "em_target.yaml",
+                    "results/em_summary.yaml",
+                    "results/em_summary.csv" if os.path.exists(summary_csv) else None,
+                ],
+                parent,
+                _parser_or_tool_record(
+                    "effective_mass_runtime.py collect",
+                    "quadratic fit of target EIGENVAL local k-line"),
+                _transformation_record(
+                    "effective_mass_curvature_fit",
+                    {
+                        "carrier": item.get("carrier"),
+                        "band_edge": item.get("edge"),
+                        "valley": item.get("valley_index"),
+                        "direction": item.get("direction"),
+                        "k_window_inv_angstrom": settings.get("delta_k"),
+                        "fit_window_each_side": primary.get("fit_each_side"),
+                        "missing_required": missing,
+                    }),
+                conv, status)
+            result["source_files"] = [
+                name for name in result["source_files"] if name is not None
+            ]
+            labels["results"].append(_apply_fit_quality(result, {
+                "type": "quadratic_curvature_fit",
+                "quality_pass": quality_pass,
+                "r2": primary.get("r2"),
+                "max_abs_residual_meV": primary.get("max_abs_residual_meV"),
+                "fit_energy_window_meV": primary.get("fit_energy_window_meV"),
+                "curvature_sign_ok": primary.get("curvature_sign_ok"),
+                "uncertainty": item.get("uncertainty"),
+                "notes": None if quality_pass else "missing_or_failed_fit_quality",
+            }))
+        if any(result["result_status"] == "diagnostic"
+               for result in labels["results"]):
+            labels["review_state"]["state"] = "diagnostic"
+
+    elif module_meta["name"] == "mobility":
+        settings_path = os.path.join(work_dir, "mobility_settings.yaml")
+        summary_path = os.path.join(work_dir, "results", "mobility_summary.yaml")
+        summary_csv = os.path.join(work_dir, "results", "mobility_summary.csv")
+        points_csv = os.path.join(work_dir, "results", "mobility_points.csv")
+        runs_path = os.path.join(work_dir, "mobility_runs.yaml")
+        settings = _safe_load_yaml(settings_path)
+        summary = _safe_load_yaml(summary_path)
+        runs = _safe_load_yaml(runs_path)
+        em_source = settings.get(
+            "effective_mass_source",
+            os.path.join(project.project_dir, "11_effective_mass",
+                         "results", "em_summary.yaml"))
+        charge_parent = settings.get("charge_parent", "02_scf")
+        parent = "11_effective_mass + 02_scf + 01_opt"
+        labels["parent_links"] = {
+            "effective_mass_source": em_source,
+            "charge_parent": charge_parent,
+            "structure_source": "01_opt/CONTCAR",
+            "parent_calculation": parent,
+        }
+        for rel, role, required in (
+            ("mobility_settings.yaml", "mobility_settings", True),
+            ("mobility_runs.yaml", "strain_run_manifest", True),
+            (os.path.join("results", "mobility_summary.csv"),
+             "mobility_csv_output", True),
+            (os.path.join("results", "mobility_points.csv"),
+             "mobility_fit_points_csv", True),
+            ("01_opt/CONTCAR", "optimized_structure_source", True),
+            (f"{charge_parent}/CHGCAR", "parent_charge_density", True),
+        ):
+            labels["source_files"][rel] = path_record(
+                os.path.join(project.project_dir, rel)
+                if "/" in rel and rel.split("/", 1)[0] in {"01_opt", charge_parent}
+                else os.path.join(work_dir, rel),
+                base_dir=project.project_dir, role=role, required=required)
+        labels["source_files"]["11_effective_mass/results/em_summary.yaml"] = (
+            path_record(
+                em_source, base_dir=project.project_dir,
+                role="effective_mass_source_summary", required=True))
+
+        missing_global = [
+            name for name, path in (
+                ("effective_mass_source", em_source),
+                ("mobility_runs.yaml", runs_path),
+                ("results/mobility_summary.yaml", summary_path),
+                ("results/mobility_summary.csv", summary_csv),
+                ("results/mobility_points.csv", points_csv),
+            )
+            if not os.path.exists(path)
+        ]
+        strain_runs = runs.get("runs", [])
+        if not strain_runs:
+            missing_global.append("strain_series")
+        labels["strain_run_manifest"] = {
+            "n_strain_runs": len(strain_runs),
+            "strain_range_percent": [
+                item.get("strain_percent") for item in strain_runs
+            ],
+            "run_dirs": [
+                {
+                    "relax_dir": item.get("relax_dir"),
+                    "scf_dir": item.get("scf_dir"),
+                    "edge_runs": [
+                        edge.get("run_dir")
+                        for edge in item.get("edge_runs", [])
+                    ],
+                }
+                for item in strain_runs
+            ],
+        }
+        labels["strain_run_evidence"] = []
+        missing_strain_outputs = []
+        for item in strain_runs:
+            relax_contcar = os.path.join(
+                work_dir, item.get("relax_dir", ""), "CONTCAR")
+            scf_chgcar = os.path.join(
+                work_dir, item.get("scf_dir", ""), "CHGCAR")
+            scf_locpot = os.path.join(
+                work_dir, item.get("scf_dir", ""), "LOCPOT")
+            evidence = {
+                "direction": item.get("direction"),
+                "strain_percent": item.get("strain_percent"),
+                "relax_dir": item.get("relax_dir"),
+                "scf_dir": item.get("scf_dir"),
+                "relax_CONTCAR": path_record(
+                    relax_contcar,
+                    base_dir=project.project_dir,
+                    role="strain_relaxed_structure", required=True),
+                "scf_CHGCAR": path_record(
+                    scf_chgcar,
+                    base_dir=project.project_dir,
+                    role="strain_scf_charge_density", required=True),
+                "scf_LOCPOT": path_record(
+                    scf_locpot,
+                    base_dir=project.project_dir,
+                    role="strain_scf_vacuum_alignment", required=True),
+                "edge_outputs": [],
+            }
+            for label, path in (
+                ("relax_CONTCAR", relax_contcar),
+                ("scf_CHGCAR", scf_chgcar),
+                ("scf_LOCPOT", scf_locpot),
+            ):
+                if not os.path.exists(path):
+                    missing_strain_outputs.append(
+                        f"{item.get('direction')}:{item.get('strain_percent')}:{label}")
+            for edge in item.get("edge_runs", []):
+                edge_dir = edge.get("run_dir", "")
+                edge_eigenval = os.path.join(work_dir, edge_dir, "EIGENVAL")
+                edge_kpoints = os.path.join(work_dir, edge_dir, "KPOINTS")
+                evidence["edge_outputs"].append({
+                    "run_dir": edge_dir,
+                    "EIGENVAL": path_record(
+                        edge_eigenval,
+                        base_dir=project.project_dir,
+                        role="strain_edge_eigenval", required=True),
+                    "KPOINTS": path_record(
+                        edge_kpoints,
+                        base_dir=project.project_dir,
+                        role="strain_edge_kpoints", required=True),
+                })
+                if not os.path.exists(edge_eigenval):
+                    missing_strain_outputs.append(f"{edge_dir}/EIGENVAL")
+                if not os.path.exists(edge_kpoints):
+                    missing_strain_outputs.append(f"{edge_dir}/KPOINTS")
+            labels["strain_run_evidence"].append(evidence)
+        missing_global.extend(missing_strain_outputs)
+
+        elastic = summary.get("elastic", {})
+        mobility = summary.get("mobility", [])
+        if not elastic:
+            missing_global.append("elastic_fit")
+        if not mobility:
+            missing_global.append("deformation_potential_fit")
+        if not mobility:
+            status = _status_from_missing_and_quality(
+                base_status, missing_global, False)
+            labels["results"].append(_result_entry(
+                "mobility_fit_summary",
+                "present" if os.path.exists(summary_path) else None,
+                None, method, source_module, work_dir,
+                ["results/mobility_summary.yaml", "mobility_runs.yaml"],
+                parent, labels["parser"],
+                _transformation_record(
+                    "deformation_potential_mobility_fit",
+                    {"missing_required": missing_global}),
+                conv, status))
+        for item in mobility:
+            direction = item.get("direction")
+            elastic_fit = elastic.get(direction, {})
+            fit_quality_present = all(
+                key in item for key in ("C2D_N_per_m", "E1_eV", "edge_fit_r2")
+            ) and bool(elastic_fit)
+            missing = list(missing_global)
+            if not fit_quality_present:
+                missing.append("deformation_potential_or_elastic_fit_quality")
+            quality_pass = bool(item.get("quality_pass")) and bool(
+                elastic_fit.get("quality_pass")) and fit_quality_present
+            status = _status_from_missing_and_quality(
+                base_status, missing, quality_pass)
+            result = _result_entry(
+                "mobility_cm2_per_Vs",
+                item.get("mobility_cm2_per_Vs"), "cm^2 V^-1 s^-1",
+                method, source_module, work_dir,
+                [
+                    "results/mobility_summary.yaml",
+                    "results/mobility_summary.csv",
+                    "results/mobility_points.csv",
+                    "mobility_runs.yaml",
+                    "11_effective_mass/results/em_summary.yaml",
+                ],
+                parent,
+                _parser_or_tool_record(
+                    "mobility_runtime.py collect",
+                    "elastic and deformation-potential fits from strain series"),
+                _transformation_record(
+                    "deformation_potential_mobility_fit",
+                    {
+                        "carrier": item.get("carrier"),
+                        "direction": direction,
+                        "band_edge": item.get("edge"),
+                        "valley": item.get("valley_index"),
+                        "strain_range_percent": settings.get("strain_values"),
+                        "effective_mass_source": em_source,
+                        "missing_required": missing,
+                    }),
+                conv, status)
+            labels["results"].append(_apply_fit_quality(result, {
+                "type": "deformation_potential_and_elastic_fit",
+                "quality_pass": quality_pass,
+                "C2D_N_per_m": item.get("C2D_N_per_m"),
+                "E1_eV": item.get("E1_eV"),
+                "effective_mass_source": em_source,
+                "m_transport_m0": item.get("m_transport_m0"),
+                "m_dos_m0": item.get("m_dos_m0"),
+                "edge_fit_r2": item.get("edge_fit_r2"),
+                "elastic_r2": elastic_fit.get("r2"),
+                "elastic_quality_pass": elastic_fit.get("quality_pass"),
+                "uncertainty": item.get("uncertainty"),
+                "notes": None if quality_pass else "missing_or_failed_fit_quality",
+            }))
+        if any(result["result_status"] == "diagnostic"
+               for result in labels["results"]):
+            labels["review_state"]["state"] = "diagnostic"
+
+    return labels
+
+
+def write_batch_c_result_labels(project, mod_dir, info):
+    labels = build_batch_c_result_labels(project, mod_dir, info)
+    path = os.path.join(project.project_dir, mod_dir, "result_labels.yaml")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        yaml.dump(labels, f, default_flow_style=False)
+    return path
+
+
 def write_batch_b_result_labels(project, mod_dir, info, parser=None):
     labels = build_batch_b_result_labels(project, mod_dir, info, parser)
     path = os.path.join(project.project_dir, mod_dir, "result_labels.yaml")
@@ -1568,6 +2033,10 @@ def cmd_collect(args):
         elif mod_dir in BATCH_B_RESULT_MODULES:
             label_path = write_batch_b_result_labels(
                 project, mod_dir, info, parser=parser)
+            update_module_status(
+                status, mod_dir, result_labels_file=label_path)
+        elif mod_dir in BATCH_C_RESULT_MODULES:
+            label_path = write_batch_c_result_labels(project, mod_dir, info)
             update_module_status(
                 status, mod_dir, result_labels_file=label_path)
 

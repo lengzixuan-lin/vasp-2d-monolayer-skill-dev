@@ -2651,6 +2651,7 @@ def collect_results():
     area0_m2 = area_angstrom2(settings["optimized_contcar"]) * 1e-20
 
     records = []
+    warnings = []
     for item in runs:
         vacuum = parse_locpot_vacuum(item["scf_dir"])
         if vacuum["vacuum_std_eV"] > settings["vacuum_std_warning_eV"]:
@@ -2678,7 +2679,6 @@ def collect_results():
 
     elastic = {}
     mobility = []
-    warnings = []
     for direction in settings["directions"]:
         d_records = sorted(
             [r for r in records if r["direction"] == direction],

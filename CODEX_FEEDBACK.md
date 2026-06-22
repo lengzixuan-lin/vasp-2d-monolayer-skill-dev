@@ -2,68 +2,54 @@
 
 ## GitHub Context
 
-- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/26
-- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/28
-- Branch: `task_011_batch-b-hse-optical-phonopy-provenance-labels`
-- Task ID: `task_011_batch-b-hse-optical-phonopy-provenance-labels`
+- Issue: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/issues/30
+- PR: https://github.com/lengzixuan-lin/vasp-2d-monolayer-skill-dev/pull/31
+- Branch: `task_012_batch-c-effective-mass-mobility-fitted-result-labels`
+- Task ID: `task_012_batch-c-effective-mass-mobility-fitted-result-labels`
 
 ## This Round Summary
 
-- Started from synced `main` after PR #23 / Batch A was squash-merged.
-- Implemented Batch B local-only provenance/result-label support for:
-  - `05_hse_scf`
-  - `05_hse_band`
-  - `08_optical`
-  - `09_phonopy_fd`
-- Extended the existing Batch A result-label shape and collection-time writer.
-- Did not introduce a parallel provenance/result-label system.
-- Did not run server, scheduler, VASP, VASPKIT, phonopy, or dry-run commands.
+- First squash-merged PR #28, then synced local `main`.
+- Started task_012 from merged Batch A/B state.
+- Implemented Batch C local-only fitted-result labels for:
+  - `11_effective_mass`
+  - `12_mobility`
+- Reused the existing `workflow.py` result-entry schema and collection-time writer.
+- Did not add a parallel fitted-label system.
+- Did not run server, scheduler, VASP, VASPKIT, phonopy, ssh, sbatch, or dry-run commands.
 
 ## Implemented Changes
 
-- Added Batch B module metadata in `scripts/remote-workflow/workflow.py`.
-- Added Batch B result-label collection for HSE-SCF, HSE-band, optical, and finite-displacement phonopy.
-- Preserved real module directories while exposing normalized labels:
-  - `08_optical` -> `07_optical`
-  - `09_phonopy_fd` -> `08_phonopy_fd`
-- Kept Batch B entries schema-aligned with Batch A:
+- Added Batch C module metadata and `build_batch_c_result_labels(...)` in `scripts/remote-workflow/workflow.py`.
+- Added `cmd_collect` integration so `11_effective_mass` and `12_mobility` write `result_labels.yaml`.
+- Kept result entries schema-aligned with Batch A/B:
   - `value_name`
   - `parser_or_tool`
   - `transformation.label`
   - `parent_calculation`
   - `convergence_status.task_status`
+  - `uncertainty_or_fit_quality`
   - `result_status`
-- Extended prepared-stage `module_provenance.yaml` records in `modules/base.py` for Batch B modules.
-- Added `displacement_manifest.yaml` generation for `09_phonopy_fd` prepare metadata only.
+- Effective-mass labels record band-edge source, EM settings, `em_runs.yaml`, target run dirs, target `EIGENVAL` / `KPOINTS`, `em_target.yaml`, `results/em_summary.yaml`, and optional CSV output.
+- Mobility labels record effective-mass source, structure/SCF parents, `mobility_settings.yaml`, `mobility_runs.yaml`, strain relax/SCF/edge outputs, `results/mobility_summary.yaml`, and CSV outputs.
+- Fixed a local `mobility_runtime.py` template issue where `warnings` was used before initialization during collection.
 
-## Module-Specific Behavior
+## Evidence Gates
 
-- HSE-SCF records parent `02_scf` intent, parent `CONTCAR` / `CHGCAR` / `POTCAR` evidence, and a no-blind-reuse `WAVECAR` policy.
-- HSE-SCF records HSE INCAR/template settings such as `AEXX`, `HFSCREEN`, `LHFCALC`, `PRECFOCK`, and `ALGO`.
-- HSE-SCF labels require output, parent evidence, and convergence evidence before they can be final.
-- HSE-band uses `parent_calculation = 05_hse_scf`.
-- HSE-band records required parent HSE-SCF `CHGCAR`, VASPKIT 251 runtime KPOINTS provenance, and VASPKIT 252 band-gap extraction provenance.
-- HSE-band records that `WAVECAR` must not be blindly reused after KPOINTS/NBANDS/method changes.
-- HSE-band missing `EIGENVAL`, parent `CHGCAR`, or `BAND_GAP` is diagnostic, not final.
-- Optical keeps actual directory `08_optical` and exposes normalized label `07_optical`.
-- Optical separates raw VASP `LOPTICS` response from VASPKIT-converted 2D spectra.
-- Optical records `NBANDS`, `LOPTICS`, `POSCAR`, `vasprun.xml`, optional `REAL.in` / `IMAG.in`, and expected 2D outputs.
-- Optical records VASPKIT 710 as the accepted 2D conversion task.
-- Optical records VASPKIT 711 as bulk-only/invalid for monolayer optical absorption final labels.
-- Optical missing converted 2D outputs is diagnostic, not final.
-- Phonopy keeps actual directory `09_phonopy_fd` and exposes normalized label `08_phonopy_fd`.
-- Phonopy uses `parent_calculation = 01_opt`.
-- Phonopy records supercell dim, displacement distance, symprec, DOS mesh, path, and band-point settings where available.
-- Phonopy labels require displacement manifest, `FORCE_SETS`, and phonon summary evidence before final status.
+- Effective-mass results use `transformation.label = effective_mass_curvature_fit`.
+- Effective-mass entries cannot be final if band-edge source, target manifest entries, target `EIGENVAL` / `KPOINTS`, fit summary, or fit-quality evidence is missing.
+- Effective-mass entries record carrier, band edge, valley, direction, k-window, fit window, R2, residual, energy window, curvature-sign check, and quality status.
+- Mobility results use `transformation.label = deformation_potential_mobility_fit`.
+- Mobility entries cannot be final if effective-mass source, strain series, strain outputs, deformation-potential fit, elastic fit, summary, or CSV evidence is missing.
+- Mobility entries record C2D, E1, effective-mass source, carrier/direction, strain range, edge-fit R2, elastic R2, masses, and quality status.
 
 ## Tests Added
 
-- HSE-band missing parent/output evidence is not final.
-- Optical missing converted 2D outputs is not final.
-- VASPKIT 710 is treated as 2D conversion.
-- VASPKIT 711 is treated as bulk-only/invalid for monolayer absorption final labels.
-- Phonopy missing `FORCE_SETS` / subtask evidence is not final.
-- Batch B result entries keep schema-aligned keys.
+- Effective mass missing evidence is not final.
+- Effective mass entries include fit/source metadata and schema keys.
+- Mobility missing evidence is not final.
+- Mobility entries include C2D/E1/effective-mass-source/fit metadata and schema keys.
+- Tests use only synthetic YAML/CSV/temp dirs and local dummy evidence files.
 
 ## Diff Reality Check
 
@@ -74,41 +60,37 @@
   - `scripts/remote-workflow/tests/test_provenance_labels.py`
 - Documentation/update files changed:
   - `CODEX_FEEDBACK.md`
-  - `docs/handoff/2026-06-22_task_011_batch-b-hse-optical-phonopy-provenance-labels.md`
-- `config/**` changed: no.
-- Effective-mass or mobility implementation changed: no.
+  - `docs/handoff/2026-06-22_task_012_batch-c-effective-mass-mobility-fitted-result-labels.md`
+- HSE/optical/phonopy implementation changed: no.
+- Config changed: no.
 - Directory names changed: no.
 - Large files added: no.
 - Raw bundles, PDFs, images, JSON caches, source trees, or binaries added: no.
 - Formal installed skill directory changed: no.
 
-## Not Implemented
+## Not Done
 
-- Did not run `ssh lilin`.
-- Did not run `sbatch`.
-- Did not run VASP.
-- Did not run VASPKIT.
-- Did not run phonopy.
-- Did not run server-side workflow dry-runs.
-- Did not delete, overwrite, move, sync, or write remote server files.
-- Did not modify real calculation tasks.
-- Did not implement effective-mass or mobility scope.
-- Did not create Batch C scope.
-- Did not rename workflow module directories.
-- Did not broadly change scheduler or Slurm behavior.
+- No `ssh lilin`.
+- No `sbatch`.
+- No VASP run.
+- No VASPKIT run.
+- No phonopy run.
+- No server dry-run.
+- No remote server write/delete/sync.
+- No real calculation task modification.
+- No formal installed skill sync.
+- No HSE, optical, or phonopy scope changes.
+- No directory renaming.
+- No broad scheduler or Slurm behavior changes.
 
 ## Checks Run
 
-- `git checkout main`
-- `git pull --ff-only origin main`
-- `git checkout -b task_011_batch-b-hse-optical-phonopy-provenance-labels`
-- `gh issue view 26 --repo lengzixuan-lin/vasp-2d-monolayer-skill-dev --json number,title,state,body,url`
 - `python -m py_compile scripts\remote-workflow\provenance_utils.py scripts\remote-workflow\workflow.py scripts\remote-workflow\modules\base.py scripts\remote-workflow\collect\outcar_parser.py scripts\remote-workflow\tests\test_provenance_labels.py`
 - `python -m unittest discover scripts\remote-workflow\tests`
-- `git diff --check`
 
-## Remaining Notes
+## ChatGPT Review Focus
 
-- This PR is Batch B only.
-- ChatGPT should review whether Batch B correctly extends Batch A instead of creating a parallel label system.
-- ChatGPT should focus on HSE parent policies, VASPKIT 251/710 provenance, VASPKIT 711 guardrails, optical raw-vs-converted separation, phonopy manifest/final-status gating, and scope boundaries.
+- Confirm Batch C extends the existing Batch A/B schema instead of creating a parallel fitted-label system.
+- Check effective-mass final-status gates for band-edge source, target manifest, target `EIGENVAL` / `KPOINTS`, summary, and fit-quality evidence.
+- Check mobility final-status gates for effective-mass source, strain series/outputs, deformation-potential fit, elastic fit, summary, and CSV evidence.
+- Check that no remote execution, scheduler behavior, installed skill sync, or unrelated HSE/optical/phonopy changes slipped in.
