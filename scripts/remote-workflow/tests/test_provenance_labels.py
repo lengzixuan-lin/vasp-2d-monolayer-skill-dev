@@ -6,6 +6,8 @@ import sys
 import tempfile
 import unittest
 
+import yaml
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
@@ -173,6 +175,214 @@ class TestBatchBResultLabels(unittest.TestCase):
                 self.assertTrue(labels["results"])
                 for result in labels["results"]:
                     self.assert_result_schema_keys(result)
+
+
+class TestBatchCResultLabels(unittest.TestCase):
+    def assert_result_schema_keys(self, result):
+        self.assertIn("value_name", result)
+        self.assertIn("parser_or_tool", result)
+        self.assertIn("name", result["parser_or_tool"])
+        self.assertIn("transformation", result)
+        self.assertIn("label", result["transformation"])
+        self.assertIn("parent_calculation", result)
+        self.assertIn("convergence_status", result)
+        self.assertIn("task_status", result["convergence_status"])
+        self.assertIn("uncertainty_or_fit_quality", result)
+        self.assertIn("result_status", result)
+
+    def write_yaml(self, path, payload):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            yaml.safe_dump(payload, f, sort_keys=False)
+
+    def touch(self, path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            f.write("synthetic local-only evidence\n")
+
+    def test_effective_mass_missing_evidence_is_not_final(self):
+        import workflow
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = FakeProject(tmp)
+            os.makedirs(os.path.join(tmp, "11_effective_mass"))
+            labels = workflow.build_batch_c_result_labels(
+                project, "11_effective_mass", {"state": "completed"})
+
+        result = labels["results"][0]
+        self.assert_result_schema_keys(result)
+        self.assertEqual(result["value_name"], "effective_mass_fit_summary")
+        self.assertEqual(result["transformation"]["label"],
+                         "effective_mass_curvature_fit")
+        self.assertNotEqual(result["result_status"], "final")
+
+    def test_effective_mass_entries_include_fit_source_metadata(self):
+        import workflow
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = FakeProject(tmp)
+            em_dir = os.path.join(tmp, "11_effective_mass")
+            run_dir = os.path.join(em_dir, "cbm_v1_a")
+            self.write_yaml(os.path.join(em_dir, "effective_mass_settings.yaml"), {
+                "edge_source": "03_pbeband",
+                "charge_parent": "02_scf",
+                "delta_k": 0.005,
+            })
+            self.write_yaml(
+                os.path.join(em_dir, "00_edge_source", "band_edge.yaml"),
+                {"gap_eV": 1.0})
+            self.write_yaml(os.path.join(em_dir, "em_runs.yaml"), {
+                "targets": [{
+                    "run_dir": "cbm_v1_a",
+                    "carrier": "electron",
+                    "edge": "cbm",
+                    "valley_label": "v1",
+                    "direction": "a",
+                }]
+            })
+            self.touch(os.path.join(run_dir, "EIGENVAL"))
+            self.touch(os.path.join(run_dir, "KPOINTS"))
+            self.write_yaml(os.path.join(run_dir, "em_target.yaml"),
+                            {"carrier": "electron"})
+            self.touch(os.path.join(tmp, "02_scf", "CHGCAR"))
+            self.touch(os.path.join(tmp, "03_pbeband", "EIGENVAL"))
+            self.write_yaml(os.path.join(em_dir, "results", "em_summary.yaml"), {
+                "results": [{
+                    "run_dir": "cbm_v1_a",
+                    "carrier": "electron",
+                    "edge": "cbm",
+                    "direction": "a",
+                    "valley_index": 1,
+                    "source_kpoint": [0.0, 0.0, 0.0],
+                    "source_band_index_1based": 2,
+                    "source_spin_index_1based": 1,
+                    "primary_effective_mass_m0": 0.42,
+                    "quality_pass": True,
+                    "fits": [{
+                        "fit_each_side": 5,
+                        "r2": 0.999,
+                        "fit_energy_window_meV": 21.0,
+                        "max_abs_residual_meV": 0.7,
+                        "curvature_sign_ok": True,
+                    }],
+                }]
+            })
+            self.touch(os.path.join(em_dir, "results", "em_summary.csv"))
+            labels = workflow.build_batch_c_result_labels(
+                project, "11_effective_mass", {"state": "completed"})
+
+        result = labels["results"][0]
+        self.assert_result_schema_keys(result)
+        self.assertEqual(result["value_name"], "effective_mass_m0")
+        self.assertEqual(result["parent_calculation"], "02_scf + 03_pbeband")
+        self.assertEqual(result["transformation"]["label"],
+                         "effective_mass_curvature_fit")
+        self.assertEqual(result["transformation"]["details"]["carrier"],
+                         "electron")
+        self.assertEqual(
+            result["uncertainty_or_fit_quality"]["type"],
+            "quadratic_curvature_fit")
+        self.assertEqual(result["uncertainty_or_fit_quality"]["r2"], 0.999)
+        self.assertEqual(result["result_status"], "final")
+        self.assertIn("target_runs", labels)
+
+    def test_mobility_missing_evidence_is_not_final(self):
+        import workflow
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = FakeProject(tmp)
+            os.makedirs(os.path.join(tmp, "12_mobility"))
+            labels = workflow.build_batch_c_result_labels(
+                project, "12_mobility", {"state": "completed"})
+
+        result = labels["results"][0]
+        self.assert_result_schema_keys(result)
+        self.assertEqual(result["value_name"], "mobility_fit_summary")
+        self.assertEqual(result["transformation"]["label"],
+                         "deformation_potential_mobility_fit")
+        self.assertNotEqual(result["result_status"], "final")
+
+    def test_mobility_entries_include_fit_source_metadata(self):
+        import workflow
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = FakeProject(tmp)
+            mob_dir = os.path.join(tmp, "12_mobility")
+            em_source = os.path.join(
+                tmp, "11_effective_mass", "results", "em_summary.yaml")
+            self.write_yaml(em_source, {"results": []})
+            self.write_yaml(os.path.join(mob_dir, "mobility_settings.yaml"), {
+                "effective_mass_source": em_source,
+                "charge_parent": "02_scf",
+                "strain_values": [-1.0, 0.0, 1.0],
+            })
+            strain_runs = []
+            for strain in (-1.0, 0.0, 1.0):
+                label = str(strain).replace("-", "m").replace(".", "p")
+                relax_dir = os.path.join("strain_a", label, "relax")
+                scf_dir = os.path.join("strain_a", label, "scf")
+                edge_dir = os.path.join("strain_a", label, "cbm_v1_a")
+                strain_runs.append({
+                    "direction": "a",
+                    "strain_percent": strain,
+                    "strain_fraction": strain / 100.0,
+                    "relax_dir": relax_dir,
+                    "scf_dir": scf_dir,
+                    "edge_runs": [{"run_dir": edge_dir}],
+                })
+                self.touch(os.path.join(mob_dir, relax_dir, "CONTCAR"))
+                self.touch(os.path.join(mob_dir, scf_dir, "CHGCAR"))
+                self.touch(os.path.join(mob_dir, scf_dir, "LOCPOT"))
+                self.touch(os.path.join(mob_dir, edge_dir, "EIGENVAL"))
+                self.touch(os.path.join(mob_dir, edge_dir, "KPOINTS"))
+            self.write_yaml(os.path.join(mob_dir, "mobility_runs.yaml"), {
+                "runs": strain_runs,
+            })
+            self.touch(os.path.join(tmp, "01_opt", "CONTCAR"))
+            self.touch(os.path.join(tmp, "02_scf", "CHGCAR"))
+            self.write_yaml(
+                os.path.join(mob_dir, "results", "mobility_summary.yaml"), {
+                    "elastic": {
+                        "a": {
+                            "C2D_N_per_m": 123.0,
+                            "r2": 0.999,
+                            "quality_pass": True,
+                        }
+                    },
+                    "mobility": [{
+                        "carrier": "electron",
+                        "edge": "cbm",
+                        "valley_index": 1,
+                        "direction": "a",
+                        "m_transport_m0": 0.42,
+                        "m_dos_m0": 0.50,
+                        "C2D_N_per_m": 123.0,
+                        "E1_eV": 4.2,
+                        "edge_fit_r2": 0.998,
+                        "mobility_cm2_per_Vs": 321.0,
+                        "quality_pass": True,
+                    }],
+                })
+            self.touch(os.path.join(mob_dir, "results", "mobility_summary.csv"))
+            self.touch(os.path.join(mob_dir, "results", "mobility_points.csv"))
+            labels = workflow.build_batch_c_result_labels(
+                project, "12_mobility", {"state": "completed"})
+
+        result = labels["results"][0]
+        self.assert_result_schema_keys(result)
+        self.assertEqual(result["value_name"], "mobility_cm2_per_Vs")
+        self.assertEqual(result["parent_calculation"],
+                         "11_effective_mass + 02_scf + 01_opt")
+        self.assertEqual(result["transformation"]["label"],
+                         "deformation_potential_mobility_fit")
+        self.assertEqual(result["uncertainty_or_fit_quality"]["C2D_N_per_m"],
+                         123.0)
+        self.assertEqual(result["uncertainty_or_fit_quality"]["E1_eV"], 4.2)
+        self.assertEqual(
+            result["uncertainty_or_fit_quality"]["effective_mass_source"],
+            em_source)
+        self.assertEqual(result["result_status"], "final")
+        self.assertIn("strain_run_evidence", labels)
 
 
 if __name__ == "__main__":
