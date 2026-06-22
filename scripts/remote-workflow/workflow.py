@@ -20,10 +20,37 @@ import shutil
 import argparse
 from datetime import datetime
 from pathlib import Path
+from provenance_utils import path_record
 
 
 TERMINAL_OK_STATES = {"completed", "completed_check"}
 TERMINAL_BAD_STATES = {"failed", "cancelled", "timeout", "blocked"}
+BATCH_A_RESULT_MODULES = {
+    "01_opt": {
+        "name": "opt",
+        "normalized_module_label": "01_opt",
+        "method_label": "pbe_geometry_optimization",
+        "parent_calculation": "00_input",
+    },
+    "02_scf": {
+        "name": "scf",
+        "normalized_module_label": "02_scf",
+        "method_label": "pbe_scf",
+        "parent_calculation": "01_opt",
+    },
+    "03_pbeband": {
+        "name": "band",
+        "normalized_module_label": "03_band",
+        "method_label": "pbe_band_structure",
+        "parent_calculation": "02_scf",
+    },
+    "04_dos": {
+        "name": "dos",
+        "normalized_module_label": "04_dos",
+        "method_label": "pbe_dos",
+        "parent_calculation": "02_scf",
+    },
+}
 
 
 def now_iso():
@@ -51,6 +78,73 @@ def update_module_status(status, mod_dir, **updates):
 
 def dependency_state(status, dep_dir):
     return status.get("modules", {}).get(dep_dir, {}).get("state")
+
+
+def write_input_provenance(project, source_poscar, audit_path, audit):
+    """Write provenance for 00_input after project seed files exist."""
+    input_dir = os.path.join(project.project_dir, "00_input")
+    copied_poscar = os.path.join(input_dir, "POSCAR")
+    metadata_path = os.path.join(input_dir, "metadata.yaml")
+    manifest_path = os.path.join(project.project_dir, "manifest.yaml")
+    status_path = os.path.join(project.project_dir, "workflow_status.yaml")
+    missing = [
+        name for name, path in (
+            ("copied_poscar", copied_poscar),
+            ("metadata", metadata_path),
+            ("structure_audit", audit_path),
+            ("manifest", manifest_path),
+            ("workflow_status", status_path),
+        )
+        if not os.path.exists(path)
+    ]
+    payload = {
+        "schema_version": "2026-06-20.batch_a.v1",
+        "project": project.name,
+        "module_identity": {
+            "name": "input",
+            "actual_module_dir": "00_input",
+            "normalized_module_label": "00_input",
+            "method_label": "input_structure",
+            "calculation_purpose": "Seed the workflow from a reviewed POSCAR.",
+            "batch_a_baseline": True,
+        },
+        "created_at": now_iso(),
+        "source_structure": {
+            "source_poscar": path_record(
+                source_poscar, role="original_user_supplied_poscar",
+                required=True),
+            "copied_poscar": path_record(
+                copied_poscar, base_dir=project.project_dir,
+                role="workflow_input_poscar", required=True),
+        },
+        "audit_records": {
+            "metadata": path_record(
+                metadata_path, base_dir=project.project_dir,
+                role="project_metadata", required=True),
+            "structure_audit": path_record(
+                audit_path, base_dir=project.project_dir,
+                role="structure_audit", required=True),
+            "manifest": path_record(
+                manifest_path, base_dir=project.project_dir,
+                role="workflow_manifest", required=True),
+            "workflow_status": path_record(
+                status_path, base_dir=project.project_dir,
+                role="workflow_status", required=True),
+        },
+        "structure_audit_status": {
+            "warnings": audit.get("warnings", []) if audit else [],
+            "status": "blocked" if missing else "pending_review",
+        },
+        "review_state": {
+            "state": "blocked" if missing else "pending_review",
+            "missing_required_records": missing,
+            "final_result_status": "not_applicable_input_stage",
+        },
+    }
+    out_path = os.path.join(input_dir, "module_provenance.yaml")
+    with open(out_path, "w") as f:
+        yaml.dump(payload, f, default_flow_style=False)
+    return out_path
 
 
 def inspect_vasp_run(work_dir, module_name):
@@ -451,7 +545,10 @@ def cmd_new(args):
             for m in modules if m["enabled"]
         },
     }
+    status["input_provenance_file"] = os.path.join(
+        project.project_dir, "00_input", "module_provenance.yaml")
     project.save_status(status)
+    write_input_provenance(project, args.poscar, audit_path, audit)
 
     print(f"\n  Total enabled: {enabled_count}/{len(modules)}")
     print(f"  Project saved to: {project.project_dir}")
@@ -863,6 +960,213 @@ def cmd_diagnose(args):
     project.save_status(status)
 
 
+def _result_status_from_evidence(workflow_state, evidence_exists, finished):
+    if workflow_state in TERMINAL_BAD_STATES:
+        return "blocked"
+    if not evidence_exists:
+        return "blocked" if workflow_state == "completed" else "pending_review"
+    if not finished:
+        return "diagnostic"
+    if workflow_state != "completed":
+        return "pending_review"
+    return "final"
+
+
+def _outcar_finished(outcar_path):
+    if not os.path.exists(outcar_path):
+        return False
+    with open(outcar_path, "r", errors="ignore") as f:
+        return "General timing and accounting" in f.read()
+
+
+def _transformation_record(label, details=None):
+    return {
+        "label": label,
+        "details": details,
+    }
+
+
+def _parser_or_tool_record(name, command_or_source, version="workflow-local"):
+    return {
+        "name": name,
+        "version": version,
+        "command_or_source": command_or_source,
+    }
+
+
+def _result_entry(name, value, unit, method_label, source_module,
+                  source_dir, source_files, parent_calculation,
+                  parser_or_tool, transformation, convergence_status,
+                  result_status):
+    if isinstance(transformation, str):
+        transformation = _transformation_record(transformation)
+    return {
+        "value_name": name,
+        "value": value,
+        "unit": unit,
+        "method_label": method_label,
+        "source_module": source_module,
+        "source_directory": source_dir,
+        "source_files": source_files,
+        "parent_calculation": parent_calculation,
+        "parser_or_tool": parser_or_tool,
+        "convergence_status": convergence_status,
+        "transformation": transformation,
+        "uncertainty_or_fit_quality": {
+            "type": "not_applicable",
+            "value": None,
+            "notes": None,
+        },
+        "result_status": result_status,
+        "review_notes": [],
+    }
+
+
+def build_baseline_result_labels(project, mod_dir, info, parser=None):
+    """Build Batch A result labels from existing local output evidence."""
+    module_meta = BATCH_A_RESULT_MODULES[mod_dir]
+    work_dir = os.path.join(project.project_dir, mod_dir)
+    outcar = os.path.join(work_dir, "OUTCAR")
+    band_gap_file = os.path.join(work_dir, "BAND_GAP")
+    doscar = os.path.join(work_dir, "DOSCAR")
+    workflow_state = info.get("state", "unknown")
+    outcar_exists = os.path.exists(outcar)
+    outcar_finished = _outcar_finished(outcar)
+    parser_meta = _parser_or_tool_record(
+        "OutcarParser" if parser else "not_available",
+        "scripts/remote-workflow/collect/outcar_parser.py")
+    convergence_status = {
+        "electronic": "unknown",
+        "ionic": (
+            "converged"
+            if parser and parser.has_converged()
+            else "not_confirmed"
+        ),
+        "task_status": (
+            "finished"
+            if outcar_finished
+            else ("missing_evidence" if not outcar_exists else "not_finished")
+        ),
+    }
+    source_files = {
+        "OUTCAR": path_record(
+            outcar, base_dir=project.project_dir,
+            role="vasp_output", required=True),
+        "BAND_GAP": path_record(
+            band_gap_file, base_dir=project.project_dir,
+            role="vaspkit_band_gap_output",
+            required=module_meta["name"] == "band"),
+        "DOSCAR": path_record(
+            doscar, base_dir=project.project_dir,
+            role="dos_output", required=module_meta["name"] == "dos"),
+    }
+    result_status = _result_status_from_evidence(
+        workflow_state, outcar_exists, outcar_finished)
+    labels = {
+        "schema_version": "2026-06-20.batch_a.v1",
+        "generated_at": now_iso(),
+        "module_identity": {
+            "name": module_meta["name"],
+            "actual_module_dir": mod_dir,
+            "normalized_module_label": module_meta["normalized_module_label"],
+            "method_label": module_meta["method_label"],
+            "batch_a_baseline": True,
+        },
+        "collection_context": {
+            "workflow_state": workflow_state,
+            "job_id": info.get("job_id"),
+            "source_directory": work_dir,
+        },
+        "source_files": source_files,
+        "parser": parser_meta,
+        "convergence_status": {
+            "outcar_exists": outcar_exists,
+            "outcar_normal_finish": outcar_finished,
+            "ionic_converged": parser.has_converged() if parser else None,
+            "n_ionic_steps": parser.get_n_ionic_steps() if parser else None,
+        },
+        "results": [],
+        "review_state": {
+            "state": "pending_review" if result_status == "final" else result_status,
+            "reason": "collector_evidence_based_labels",
+        },
+    }
+    method = module_meta["method_label"]
+    source_module = module_meta["normalized_module_label"]
+    parent_calculation = module_meta["parent_calculation"]
+
+    if parser:
+        total_energy = parser.get_total_energy()
+        if total_energy is not None:
+            energy_status = result_status
+            if module_meta["name"] == "opt" and not parser.has_converged():
+                energy_status = "diagnostic"
+            labels["results"].append(_result_entry(
+                "total_energy", total_energy, "eV", method, source_module,
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, energy_status))
+        fermi = parser.get_fermi_level()
+        if fermi is not None:
+            fermi_status = (
+                result_status if module_meta["name"] in ("scf", "dos")
+                else "diagnostic"
+            )
+            labels["results"].append(_result_entry(
+                "fermi_level", fermi, "eV", method, source_module,
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, fermi_status))
+        max_force = parser.get_max_force()
+        if module_meta["name"] == "opt" and max_force is not None:
+            force_status = result_status if parser.has_converged() else "diagnostic"
+            labels["results"].append(_result_entry(
+                "max_force", max_force, "eV/A", method, source_module,
+                work_dir, ["OUTCAR"], parent_calculation, parser_meta,
+                "none", convergence_status, force_status))
+
+    if module_meta["name"] == "band":
+        band_parser = _parser_or_tool_record("VASPKIT 211 output", "BAND_GAP")
+        if os.path.exists(band_gap_file):
+            with open(band_gap_file, "r", errors="ignore") as f:
+                band_gap_text = f.read().strip()
+            labels["results"].append(_result_entry(
+                "band_gap", band_gap_text, "eV", method, source_module,
+                work_dir, ["BAND_GAP"], parent_calculation, band_parser,
+                "band_gap_extraction", convergence_status, result_status))
+        else:
+            labels["results"].append(_result_entry(
+                "band_gap", None, "eV", method, source_module,
+                work_dir, ["BAND_GAP"], parent_calculation, band_parser,
+                "band_gap_extraction", convergence_status, "diagnostic"))
+
+    if module_meta["name"] == "dos":
+        dos_status = "pending_review" if os.path.exists(doscar) else "diagnostic"
+        labels["results"].append(_result_entry(
+            "dos_output", "present" if os.path.exists(doscar) else None,
+            None, method, source_module, work_dir, ["DOSCAR"],
+            parent_calculation,
+            _parser_or_tool_record(
+                "not_implemented",
+                "DOSCAR parser not implemented in Batch A"),
+            "dos_postprocessing_pending", convergence_status, dos_status))
+
+    if not labels["results"]:
+        labels["results"].append(_result_entry(
+            "module_collection_status", workflow_state, None, method,
+            source_module, work_dir, [], parent_calculation, parser_meta,
+            "none", convergence_status, result_status))
+
+    return labels
+
+
+def write_baseline_result_labels(project, mod_dir, info, parser=None):
+    labels = build_baseline_result_labels(project, mod_dir, info, parser)
+    path = os.path.join(project.project_dir, mod_dir, "result_labels.yaml")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        yaml.dump(labels, f, default_flow_style=False)
+    return path
+
+
 def cmd_collect(args):
     """Collect results from all completed modules."""
     project = _setup_project_from_disk(args.project_name)
@@ -871,57 +1175,52 @@ def cmd_collect(args):
         print(f"Error: project '{args.project_name}' not found.")
         return
 
-    import subprocess
+    from collect.outcar_parser import OutcarParser
 
     print(f"=== Collecting results for '{args.project_name}' ===\n")
     results = {}
     modules = status.get("modules", {})
 
     for mod_dir, info in modules.items():
+        work_dir = os.path.join(project.project_dir, mod_dir)
+        outcar = os.path.join(work_dir, "OUTCAR")
+        parser = None
+        if os.path.exists(outcar):
+            try:
+                parser = OutcarParser(outcar)
+            except Exception as exc:
+                print(f"  [{mod_dir}] OUTCAR parser unavailable: {exc}")
+
+        if mod_dir in BATCH_A_RESULT_MODULES:
+            label_path = write_baseline_result_labels(
+                project, mod_dir, info, parser=parser)
+            update_module_status(
+                status, mod_dir, result_labels_file=label_path)
+
         if info.get("state") != "completed":
             continue
-        work_dir = os.path.join(project.project_dir, mod_dir)
+
         print(f"  [{mod_dir}]")
+        if parser:
+            energy = parser.get_total_energy()
+            if energy is not None:
+                results.setdefault(mod_dir, {})["energy_eV"] = energy
+                print(f"    Energy: {energy} eV")
+            if parser.has_converged():
+                print(f"    Convergence: OK")
 
-        # Extract total energy
-        outcar = os.path.join(work_dir, "OUTCAR")
-        cmd_energy = (
-            f"grep 'free  energy   TOTEN' {outcar} 2>/dev/null | tail -1 | "
-            "awk '{print $5}'"
-        )
-        energy_result = subprocess.run(
-            ["bash", "-c", cmd_energy],
-            capture_output=True, text=True)
-        energy = energy_result.stdout.strip()
-        if energy:
-            results[mod_dir] = {"energy_eV": float(energy)}
-            print(f"    Energy: {energy} eV")
-
-        # Check convergence
-        cmd_conv = f"grep -c 'reached required accuracy' {outcar} 2>/dev/null || echo 0"
-        conv_result = subprocess.run(
-            ["bash", "-c", cmd_conv],
-            capture_output=True, text=True)
-        conv = conv_result.stdout.strip()
-        if conv and conv != "0":
-            print(f"    Convergence: OK")
-
-        # Extract band gap if BAND_GAP exists (vaspkit output)
         band_gap_file = os.path.join(work_dir, "BAND_GAP")
-        cmd_gap = f"cat {band_gap_file} 2>/dev/null || echo 'NOT_FOUND'"
-        gap_result = subprocess.run(
-            ["bash", "-c", cmd_gap],
-            capture_output=True, text=True)
-        if "NOT_FOUND" not in gap_result.stdout:
-            gap_text = gap_result.stdout.strip()
+        if os.path.exists(band_gap_file):
+            with open(band_gap_file, "r", errors="ignore") as f:
+                gap_text = f.read().strip()
             print(f"    Band gap: {gap_text}")
-            results[mod_dir]["band_gap"] = gap_text
+            results.setdefault(mod_dir, {})["band_gap"] = gap_text
 
     # Save results
     results_path = os.path.join(project.project_dir, "results.yaml")
-    project._load_yaml = lambda p: yaml.safe_load(open(p)) if os.path.exists(p) else {}
     with open(results_path, 'w') as f:
         yaml.dump(results, f, default_flow_style=False)
+    project.save_status(status)
 
     print(f"\n  Results saved to: {results_path}")
 
