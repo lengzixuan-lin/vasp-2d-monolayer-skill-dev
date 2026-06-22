@@ -935,6 +935,10 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
             "02_scf": "02_scf",
             "03_pbeband": "03_band",
             "04_dos": "04_dos",
+            "05_hse_scf": "05_hse_scf",
+            "05_hse_band": "05_hse_band",
+            "08_optical": "07_optical",
+            "09_phonopy_fd": "08_phonopy_fd",
         }
         return label_map.get(self.module_dir, self.module_dir)
 
@@ -944,6 +948,10 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
             "scf": "pbe_scf",
             "band": "pbe_band_structure",
             "dos": "pbe_dos",
+            "hse_scf": "hse_scf",
+            "hse_band": "hse_band_structure",
+            "optical": "pbe_loptics_vaspkit_2d_optical",
+            "phonopy_fd": "finite_displacement_phonopy_2d",
         }
         return labels.get(self.name, self.name)
 
@@ -953,6 +961,19 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
             "scf": "Generate a converged PBE charge density for child modules.",
             "band": "Compute the PBE band structure from the SCF charge density.",
             "dos": "Compute PBE density of states from the SCF charge density.",
+            "hse_scf": (
+                "Generate an HSE charge density from the parent PBE SCF state."
+            ),
+            "hse_band": (
+                "Compute HSE band structure using HSE-SCF charge density and "
+                "runtime VASPKIT 251 KPOINTS."
+            ),
+            "optical": (
+                "Run raw VASP LOPTICS and convert 2D spectra with VASPKIT 710."
+            ),
+            "phonopy_fd": (
+                "Manage finite-displacement phonopy subtasks for 2D stability."
+            ),
         }
         return purposes.get(self.name, f"Run {self.name} calculation module.")
 
@@ -983,10 +1004,14 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
                 ("INCAR", True),
                 ("KPOINTS", True),
                 ("POTCAR", True),
-                ("sub.vasp", self.name in ("opt", "scf", "band", "dos")),
+                ("sub.vasp", self.name in (
+                    "opt", "scf", "band", "dos", "hse_scf", "hse_band",
+                    "optical", "phonopy_fd")),
                 ("kpoints_summary.yaml", False),
                 ("potcar_info.yaml", False),
-                ("OPTCELL", self.name == "opt")):
+                ("OPTCELL", self.name == "opt"),
+                ("phonopy_fd_settings.yaml", self.name == "phonopy_fd"),
+                ("displacement_manifest.yaml", self.name == "phonopy_fd")):
             path = os.path.join(self.work_dir, name)
             if required or os.path.exists(path):
                 records[name] = path_record(
@@ -1064,12 +1089,122 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
                 "output_files": ["DOSCAR"],
                 "status": "dos_parser_pending",
             }
+        if self.name == "hse_band":
+            return {
+                "tool": "vaspkit",
+                "tasks": [251, 252],
+                "source_files": ["CHGCAR", "KPOINTS", "EIGENVAL", "OUTCAR"],
+                "output_files": ["BAND_GAP"],
+                "status": "intended_runtime_hse_kpoints_and_gap_extraction",
+                "wavecar_policy": (
+                    "Do not blindly reuse HSE-SCF WAVECAR after KPOINTS, "
+                    "NBANDS, or method changes."
+                ),
+            }
+        if self.name == "optical":
+            return {
+                "tool": "vaspkit",
+                "task": 710,
+                "invalid_bulk_only_task": 711,
+                "raw_vasp_step": {
+                    "source_files": ["POSCAR", "vasprun.xml", "OUTCAR"],
+                    "required_incar": ["NBANDS", "LOPTICS"],
+                },
+                "converted_2d_spectra": {
+                    "source_files": ["REAL.in", "IMAG.in"],
+                    "output_files": [
+                        "ABSORPTION_2D.dat",
+                        "REFLECTION_2D.dat",
+                        "TRANSMISSION_2D.dat",
+                        "REAL_OPTICAL_CONDUCTIVITY_2D.dat",
+                        "IMAG_OPTICAL_CONDUCTIVITY_2D.dat",
+                    ],
+                },
+                "status": "intended_runtime_vaspkit_710_conversion",
+                "guardrail": (
+                    "VASPKIT 711 is bulk-only and invalid for monolayer "
+                    "optical absorption final labels."
+                ),
+            }
+        if self.name == "phonopy_fd":
+            return {
+                "tool": "phonopy",
+                "method": "finite_displacement",
+                "source_files": [
+                    "phonopy_disp.yaml",
+                    "displacement_manifest.yaml",
+                    "disp-*/vasprun.xml",
+                ],
+                "output_files": [
+                    "FORCE_SETS",
+                    "phonopy.yaml",
+                    "results/phonon_summary.yaml",
+                ],
+                "status": "manager_runtime_pending",
+            }
         return {
             "tool": None,
             "source_files": [],
             "output_files": [],
             "status": "none",
         }
+
+    def module_specific_provenance(self, copy_inputs_from=None):
+        if self.name in ("hse_scf", "hse_band"):
+            incar_vars = self.get_incar_vars()
+            return {
+                "hse_settings": {
+                    "AEXX": incar_vars.get("aexx"),
+                    "HFSCREEN": incar_vars.get("hfscreen"),
+                    "LHFCALC": ".TRUE.",
+                    "PRECFOCK": incar_vars.get("precfock"),
+                    "ALGO": incar_vars.get("algo"),
+                },
+                "parent_calculation": (
+                    "05_hse_scf" if self.name == "hse_band" else "02_scf"
+                ),
+                "parent_policy": self.inheritance_policy(copy_inputs_from),
+            }
+        if self.name == "optical":
+            return {
+                "normalized_label_note": (
+                    "Actual directory remains 08_optical; normalized label "
+                    "is 07_optical for documented workflow order."
+                ),
+                "raw_vasp_loptics": {
+                    "NBANDS": self.calc_nbands_optical(),
+                    "LOPTICS": ".TRUE.",
+                    "source_files": ["POSCAR", "vasprun.xml", "OUTCAR"],
+                },
+                "vaspkit_2d_conversion": {
+                    "valid_task": 710,
+                    "invalid_bulk_only_task": 711,
+                    "source_files": ["REAL.in", "IMAG.in"],
+                    "expected_outputs": [
+                        "ABSORPTION_2D.dat",
+                        "REFLECTION_2D.dat",
+                        "TRANSMISSION_2D.dat",
+                        "REAL_OPTICAL_CONDUCTIVITY_2D.dat",
+                        "IMAG_OPTICAL_CONDUCTIVITY_2D.dat",
+                    ],
+                },
+            }
+        if self.name == "phonopy_fd":
+            fd_settings = self.get_phonopy_fd_settings()
+            return {
+                "normalized_label_note": (
+                    "Actual directory remains 09_phonopy_fd; normalized "
+                    "label is 08_phonopy_fd for documented workflow order."
+                ),
+                "parent_calculation": "01_opt",
+                "finite_displacement_settings": fd_settings,
+                "required_evidence_for_final": [
+                    "displacement_manifest.yaml",
+                    "FORCE_SETS",
+                    "results/phonon_summary.yaml",
+                ],
+            }
+        return {}
 
     def inheritance_policy(self, copy_inputs_from=None):
         """Describe runtime file inheritance from the parent calculation."""
@@ -1165,6 +1300,8 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
                 "method_label": self.method_label(),
                 "calculation_purpose": self.calculation_purpose(),
                 "batch_a_baseline": self.name in ("opt", "scf", "band", "dos"),
+                "batch_b_implementation": self.name in (
+                    "hse_scf", "hse_band", "optical", "phonopy_fd"),
             },
             "inheritance": self.inheritance_policy(copy_inputs_from),
             "parent_files": self.parent_file_records(copy_inputs_from),
@@ -1188,6 +1325,7 @@ echo "Finite-displacement phonopy workflow completed at $(date)"
                     copy_inputs_from).get("WAVECAR", {}),
             },
             "post_processing": self.postprocessing_intent(),
+            "module_specific": self.module_specific_provenance(copy_inputs_from),
             "review_state": self.prepared_review_state(copy_inputs_from),
             "vasp_executable": self.get_vasp_executable(),
             "incar_template": self.incar_template,
@@ -2714,19 +2852,60 @@ if __name__ == "__main__":
         with open(os.path.join(self.work_dir, "INCAR"), 'w') as f:
             f.write(incar_content)
 
-        provenance_path = self.write_module_provenance(copy_inputs_from)
-        with open(provenance_path, "r") as f:
-            provenance = yaml.safe_load(f) or {}
-        provenance["phonopy_fd"] = {
+        phonopy_fd_payload = {
             **fd_settings,
             **mesh_info,
             "method": "finite_displacement",
             "vacuum_axis_policy": "c-axis fixed; supercell dim_z forced to 1",
         }
-        with open(provenance_path, "w") as f:
-            yaml.dump(provenance, f, default_flow_style=False)
         with open(os.path.join(self.work_dir, "phonopy_fd_settings.yaml"), "w") as f:
-            yaml.dump(provenance["phonopy_fd"], f, default_flow_style=False)
+            yaml.dump(phonopy_fd_payload, f, default_flow_style=False)
+
+        displacement_manifest = {
+            "schema_version": "2026-06-20.batch_b.v1",
+            "module": "phonopy_fd",
+            "module_dir": self.module_dir,
+            "parent_calculation": "01_opt",
+            "settings": phonopy_fd_payload,
+            "subtasks": [
+                {
+                    "name": "generate_displacements",
+                    "tool": "phonopy",
+                    "status": "runtime_pending",
+                    "expected_outputs": ["phonopy_disp.yaml", "disp-*/POSCAR"],
+                },
+                {
+                    "name": "run_displacement_forces",
+                    "tool": "vasp",
+                    "status": "runtime_pending",
+                    "expected_outputs": ["disp-*/vasprun.xml"],
+                },
+                {
+                    "name": "collect_force_sets",
+                    "tool": "phonopy",
+                    "status": "runtime_pending",
+                    "expected_outputs": ["FORCE_SETS"],
+                },
+                {
+                    "name": "write_phonon_summary",
+                    "tool": "workflow-local",
+                    "status": "runtime_pending",
+                    "expected_outputs": ["results/phonon_summary.yaml"],
+                },
+            ],
+            "final_label_requirements": [
+                "phonopy_disp.yaml",
+                "displacement_manifest.yaml",
+                "FORCE_SETS",
+                "results/phonon_summary.yaml",
+            ],
+            "review_note": (
+                "Prepared locally only; no phonopy, VASP, or scheduler run "
+                "is performed while writing this manifest."
+            ),
+        }
+        with open(os.path.join(self.work_dir, "displacement_manifest.yaml"), "w") as f:
+            yaml.dump(displacement_manifest, f, default_flow_style=False)
 
         sub_content = self.render_phonopy_fd_submit_script(fd_settings)
         with open(os.path.join(self.work_dir, "sub.vasp"), 'w') as f:
@@ -2742,6 +2921,18 @@ if __name__ == "__main__":
             raise RuntimeError(
                 f"{self.module_dir} KPOINTS failed 2D validation: {errors}"
             )
+
+        provenance_path = self.write_module_provenance(copy_inputs_from)
+        with open(provenance_path, "r") as f:
+            provenance = yaml.safe_load(f) or {}
+        provenance["phonopy_fd"] = phonopy_fd_payload
+        provenance["phonopy_fd"]["displacement_manifest"] = path_record(
+            os.path.join(self.work_dir, "displacement_manifest.yaml"),
+            base_dir=self.project.project_dir,
+            role="fd_subtask_manifest",
+            required=True)
+        with open(provenance_path, "w") as f:
+            yaml.dump(provenance, f, default_flow_style=False)
 
     def generate_potcar(self):
         """Generate POTCAR using vaspkit task 103."""
